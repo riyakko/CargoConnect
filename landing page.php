@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+<?php
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -115,3 +116,6 @@
     <script type="module" src="main.js"></script>
 </body>
 </html>
+
+<?php
+?>
