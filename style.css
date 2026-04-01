@@ -22,9 +22,9 @@ body {
     border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-.brand-text-orange { color: #1E3A8A; font-weight: 800; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.36);}
-.brand-text-blue { color: #F97316; font-weight: 800; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.556); }
-.brand-icon { color: #F97316; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.818) }
+.brand-text-orange { color: #1E3A8A; font-weight: 800; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.235);}
+.brand-text-blue { color: #F97316; font-weight: 800; font-size: 1.5rem; text-shadow: 2px 2px 4px #00000038; }
+.brand-icon { color: #F97316; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.619) }
 
 .nav-link-custom {
     color: #111827 !important;
