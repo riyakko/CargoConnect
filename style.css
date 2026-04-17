@@ -191,3 +191,239 @@ body {
     }
     .decorative-swoosh { display: none; /* hide on smaller screens for cleaner look */ }
 }
+
+/* Dashboard Page Styles */
+#dashboard-page .wave {
+    animation-name: wave-animation;
+    animation-duration: 2.5s;
+    animation-iteration-count: infinite;
+    transform-origin: 70% 70%;
+    display: inline-block;
+}
+
+@keyframes wave-animation {
+    0%   { transform: rotate( 0.0deg) }
+    10%  { transform: rotate(14.0deg) }
+    20%  { transform: rotate(-8.0deg) }
+    30%  { transform: rotate(14.0deg) }
+    40%  { transform: rotate(-4.0deg) }
+    50%  { transform: rotate(10.0deg) }
+    60%  { transform: rotate( 0.0deg) }
+    100% { transform: rotate( 0.0deg) }
+}
+
+#dashboard-page #new-shipment-btn {
+    background: linear-gradient(90deg, #0d47a1, #1976d2);
+}
+
+#dashboard-page #active-shipments-icon {
+    color: #0d47a1 !important;
+}
+
+#dashboard-page #badge-in-transit {
+    color: #0d47a1 !important;
+}
+
+/* --- New Dashboard Specific Styles --- */
+#cargo-dashboard {
+    --sidebar-width: 260px;
+    --notif-width: 300px;
+    --primary-blue: #1a3c7f;
+    --bg-gray: #f4f7f6;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    background-color: var(--bg-gray);
+    overflow: hidden;
+}
+
+/* Sidebar Styling */
+#cargo-dashboard .sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--primary-blue);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding: 25px 0;
+}
+
+#cargo-dashboard .brand {
+    font-size: 22px;
+    font-weight: bold;
+    padding: 0 25px;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#cargo-dashboard .brand i { color: #f2a900; }
+
+#cargo-dashboard .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 14px 25px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: 0.2s;
+    font-size: 15px;
+}
+
+#cargo-dashboard .nav-link i { width: 25px; font-size: 18px; margin-right: 15px; }
+
+#cargo-dashboard .nav-link:hover, #cargo-dashboard .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+#cargo-dashboard .nav-link.active { border-left: 4px solid #fff; }
+
+/* Main Content Styling */
+#cargo-dashboard .main-content {
+    flex: 1;
+    padding: 35px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+#cargo-dashboard .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#cargo-dashboard .header h1 { margin: 0; font-size: 26px; font-weight: 700; }
+
+/* Empty Profile Circle */
+#cargo-dashboard .profile-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: #e2e8f0;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Stats Section */
+#cargo-dashboard .stats-section {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    width: 100%;
+}
+
+#cargo-dashboard .stat-card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+#cargo-dashboard .stat-header { font-size: 14px; color: #888; margin-bottom: 5px; font-weight: 600; }
+#cargo-dashboard .stat-value { font-size: 32px; font-weight: 700; color: #222; }
+
+#cargo-dashboard .stat-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+}
+
+#cargo-dashboard .blue-icon { background-color: #eef2ff; color: #3a76e1; }
+#cargo-dashboard .orange-icon { background-color: #fff7ed; color: #e1953a; }
+#cargo-dashboard .green-icon { background-color: #f0fdf4; color: #22c55e; }
+
+#cargo-dashboard .stat-chart-container { height: 80px; margin-top: 15px; }
+
+/* Activity Table Section */
+#cargo-dashboard .activity-section {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+#cargo-dashboard .activity-header {
+    padding: 20px 25px;
+    margin: 0;
+    font-size: 18px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+#cargo-dashboard table { width: 100%; border-collapse: collapse; }
+
+#cargo-dashboard th {
+    background-color: #f9fafb;
+    padding: 15px 25px;
+    text-align: left;
+    font-size: 13px;
+    color: #777;
+    text-transform: uppercase;
+}
+
+#cargo-dashboard td {
+    padding: 16px 25px;
+    border-bottom: 1px solid #f8f8f8;
+    font-size: 14px;
+    color: #444;
+}
+
+#cargo-dashboard .status-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#cargo-dashboard .status-in-transit { background-color: #3a76e1; }
+#cargo-dashboard .status-pending { background-color: #e1953a; }
+
+/* Notifications Panel Styling */
+#cargo-dashboard .notifications-panel {
+    width: var(--notif-width);
+    background-color: #fff;
+    border-left: 1px solid #e5e7eb;
+    padding: 30px 20px;
+    flex-shrink: 0;
+}
+
+#cargo-dashboard .notifications-header {
+    font-weight: 700;
+    margin-bottom: 25px;
+    font-size: 16px;
+}
+
+#cargo-dashboard .notification-item {
+    display: flex;
+    gap: 15px;
+    padding-bottom: 20px;
+}
+
+#cargo-dashboard .notif-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+#cargo-dashboard .notif-content-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+#cargo-dashboard .notif-content-text { color: #666; font-size: 13px; line-height: 1.4; }
