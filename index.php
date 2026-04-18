@@ -27,7 +27,7 @@
             </div>
             
             <!-- 3D Model Container -->
-            <div class="model-container-wrapper mx-auto mt-4 position-relative">
+            <div class="model-container-wrapper mx-auto mt-4 mb-5 position-relative">
                 <div class="glow-effect left-glow"></div>
                 <div class="glow-effect right-glow"></div>
                 <div id="canvas-container" class="w-100 h-100 position-relative z-1">
