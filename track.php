@@ -20,16 +20,19 @@
     <div class="container">
         <div class="row g-4 justify-content-center">
             
-            <!-- Map Placeholder -->
+            <!-- Map Section -->
             <div class="col-lg-7">
                 <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
                     <div class="card-header bg-white border-0 py-3">
                         <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-map-location-dot text-blue me-2"></i>Live Location</h6>
                     </div>
-                    <!-- We use an image or map iframe here. Since we don't have a map api key, we make a styled div -->
-                    <div class="bg-secondary bg-opacity-10 w-100 h-100 position-relative d-flex align-items-center justify-content-center" style="min-height: 400px; background-image: radial-gradient(#dee2e6 1px, transparent 1px); background-size: 20px 20px;">
-                        <span class="badge bg-primary fs-6 position-absolute shadow shadow-primary shadow-lg p-3 rounded-pill" style="top:40%; left:50%; transform:translate(-50%,-50%); z-index: 2;"><i class="fa-solid fa-ship me-2"></i>In Transit: Atlantic Ocean</span>
-                        <div class="position-absolute" style="top:40%; left:50%; width: 20px; height: 20px; background:#0d47a1; border-radius:50%; transform:translate(-50%,-50%); animation: pulse 2s infinite;"></div>
+                    <!-- Using OpenStreetMap from Leader's changes -->
+                    <div class="rounded overflow-hidden w-100 position-relative" style="height: 400px; background-color: #e2e8f0;">
+                        <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=121.05%2C13.9%2C121.25%2C14.1&amp;layer=mapnik" style="border: none;"></iframe>
+                        <div class="position-absolute" style="top:50%; left:50%; transform:translate(-50%,-100%); pointer-events: none;">
+                            <i class="fa-solid fa-location-dot text-danger" style="font-size: 3rem; text-shadow: 0px 2px 4px rgba(0,0,0,0.3);"></i>
+                            <div class="position-absolute bg-danger rounded-circle" style="width: 12px; height: 12px; top: 12px; left: 50%; transform: translateX(-50%); border: 3px solid white;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -44,7 +47,6 @@
                     <div class="card-body px-4 py-4 overflow-auto" style="max-height: 450px;">
                         
                         <div class="timeline">
-                            <!-- Step 1 -->
                             <div class="timeline-item d-flex mb-4 position-relative">
                                 <div class="timeline-icon bg-blue text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 40px; height: 40px; z-index: 2;">
                                     <i class="fa-solid fa-ship"></i>
@@ -57,7 +59,6 @@
                                 <div class="timeline-line bg-secondary bg-opacity-25 position-absolute" style="width: 2px; height: 100%; left: 19px; top: 40px;"></div>
                             </div>
                             
-                            <!-- Step 2 -->
                             <div class="timeline-item d-flex mb-4 position-relative">
                                 <div class="timeline-icon bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 40px; height: 40px; z-index: 2;">
                                     <i class="fa-solid fa-boxes-packing"></i>
@@ -70,7 +71,6 @@
                                 <div class="timeline-line bg-secondary bg-opacity-25 position-absolute" style="width: 2px; height: 100%; left: 19px; top: 40px;"></div>
                             </div>
 
-                            <!-- Step 3 -->
                             <div class="timeline-item d-flex position-relative">
                                 <div class="timeline-icon bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 40px; height: 40px; z-index: 2;">
                                     <i class="fa-solid fa-file-signature"></i>
@@ -97,6 +97,12 @@
         0% { box-shadow: 0 0 0 0 rgba(13, 71, 161, 0.4); }
         70% { box-shadow: 0 0 0 20px rgba(13, 71, 161, 0); }
         100% { box-shadow: 0 0 0 0 rgba(13, 71, 161, 0); }
+    }
+    body {
+        background-color: #f8fafc;
+    }
+</style>
+
     }
 </style>
 
