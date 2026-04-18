@@ -1,3 +1,6 @@
+    <!-- Spacer to prevent content overlap with the curve -->
+    <div style="height: 150px;"></div>
+    
     <!-- Dark Navy Footer Curve -->
     <div class="footer-curve w-100 mt-auto">
         <svg viewBox="0 0 1440 180" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display: block; width: 100%; height: auto;">

@@ -19,7 +19,7 @@ body {
 
 main {
     flex-grow: 1;
-    padding-bottom: 180px !important; /* Space for the footer curve */
+    padding-bottom: 50px !important; /* Cooperating with footer spacer */
 }
 
 /* Header & Nav */
