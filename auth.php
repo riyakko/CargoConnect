@@ -39,22 +39,16 @@ $page_title = "Login | CargoConnect";
                     <span class="text-orange">Track</span> <span style="font-weight: 800; color: #111827;">with Confidence</span>
                 </h1>
             </div>
-
+            
             <!-- 3D Model -->
             <div id="canvas-container"></div>
 
             <!-- Background Elements -->
-            <!-- Blue Swoosh Paths -->
             <div class="decorative-path">
                 <svg width="100%" height="100%" viewBox="0 0 1000 800" preserveAspectRatio="none">
-                    <!-- Left swoop -->
                     <path d="M 100 650 Q 200 700 450 550" fill="none" stroke="#3b82f6" stroke-width="2.5" />
-                    <!-- Left Arrow head -->
                     <polygon points="95,645 105,650 90,655" fill="none" stroke="#3b82f6" stroke-width="2.5" transform="rotate(-30, 100, 650)" />
-
-                    <!-- Right swoop -->
                     <path d="M 550 550 C 700 700 800 500 850 550" fill="none" stroke="#3b82f6" stroke-width="2.5" />
-                    <!-- Right square head -->
                     <rect x="846" y="546" width="8" height="8" fill="none" stroke="#3b82f6" stroke-width="2.5" transform="rotate(20, 850, 550)" />
                 </svg>
             </div>
@@ -64,7 +58,6 @@ $page_title = "Login | CargoConnect";
             </svg>
             <div class="bottom-dark"></div>
             
-            <!-- Orange Glows -->
             <div class="glow-orange"></div>
             <div class="glow-orange-right"></div>
         </div>
@@ -72,7 +65,6 @@ $page_title = "Login | CargoConnect";
         <!-- Right Panel -->
         <div class="right-panel">
             <div class="login-card">
-                <!-- Toggle -->
                 <div class="toggle-switch">
                     <div class="toggle-btn active" id="btn-login">LOGIN</div>
                     <div class="toggle-btn" id="btn-register">REGISTER</div>
@@ -104,23 +96,20 @@ $page_title = "Login | CargoConnect";
                     </div>
                 </form>
 
-                <!-- Register Form (Initially Hidden) -->
+                <!-- Register Form -->
                 <form id="form-register" action="dashboard.php" method="POST" class="d-none">
                     <div class="mb-3">
                         <label class="form-label">Full Name</label>
                         <input type="text" class="form-control" placeholder="Name" required>
                     </div>
-                    
                     <div class="mb-3">
                         <label class="form-label">Email Address</label>
                         <input type="email" class="form-control" placeholder="Email Address" required>
                     </div>
-                    
                     <div class="mb-3">
                         <label class="form-label">Phone Number</label>
                         <input type="tel" class="form-control" placeholder="Phone Number" required>
                     </div>
-
                     <div class="mb-3 position-relative">
                         <label class="form-label mb-1">Password</label>
                         <div class="position-relative">
@@ -130,7 +119,6 @@ $page_title = "Login | CargoConnect";
                             </span>
                         </div>
                     </div>
-
                     <div class="mb-4 position-relative">
                         <label class="form-label mb-1">Confirm Password</label>
                         <div class="position-relative">
@@ -140,9 +128,7 @@ $page_title = "Login | CargoConnect";
                             </span>
                         </div>
                     </div>
-
                     <button type="submit" class="btn-submit mt-4 shadow-sm">REGISTER</button>
-
                     <div class="text-center mt-4" style="font-size: 0.9rem; color: #1e293b;">
                         Already have an account? <a href="#" id="link-login" class="text-decoration-none fw-medium" style="color: #3b82f6;">Log in</a>
                     </div>
@@ -154,7 +140,6 @@ $page_title = "Login | CargoConnect";
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Three.js Setup -->
     <script type="importmap">
         {
           "imports": {
@@ -208,3 +193,4 @@ $page_title = "Login | CargoConnect";
     </script>
 </body>
 </html>
+>>>> origin/main
