@@ -103,7 +103,4 @@
     }
 </style>
 
-    }
-</style>
-
 <?php include 'includes/footer.php'; ?>

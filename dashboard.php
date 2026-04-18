@@ -136,6 +136,5 @@
     new Chart(document.getElementById('pendingChart'), { type: 'line', data: getChartData('#e1953a'), options });
     new Chart(document.getElementById('deliveredChart'), { type: 'line', data: getChartData('#22c55e'), options });
 </script>
-/main
 
 <?php include 'includes/footer.php'; ?>
