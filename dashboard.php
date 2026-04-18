@@ -1,123 +1,139 @@
-<?php include 'includes/header.php'; ?>
+﻿<?php include 'includes/header.php'; ?>
 
-<style>.wave { animation-name: wave-animation; animation-duration: 2.5s; animation-iteration-count: infinite; transform-origin: 70% 70%; display: inline-block; } @keyframes wave-animation { 0% { transform: rotate( 0.0deg) } 10% { transform: rotate(14.0deg) }  20% { transform: rotate(-8.0deg) } 30% { transform: rotate(14.0deg) } 40% { transform: rotate(-4.0deg) } 50% { transform: rotate(10.0deg) } 60% { transform: rotate( 0.0deg) } 100% { transform: rotate( 0.0deg) } }</style>
+<div id="dashboard">
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fas fa-truck-fast"></i>
+            CargoConnect.
+        </div>
+        <nav>
+            <a href="#" class="nav-link active"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="book.php" class="nav-link"><i class="fas fa-calendar-check"></i> Bookings</a>
+            <a href="calculator.php" class="nav-link"><i class="fas fa-calculator"></i> Calculator</a>
+            <a href="track.php" class="nav-link"><i class="fas fa-location-arrow"></i> Tracking</a>
+            <a href="manifest.php" class="nav-link"><i class="fas fa-file-invoice"></i> Manifests</a>
+            <a href="#" class="nav-link"><i class="fas fa-cog"></i> Settings</a>
+        </nav>
+    </div>
 
-<main class="flex-grow-1 bg-light py-4 position-relative">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
-            <h2 class="fw-bold mb-0 text-dark">Hello, John <span class="wave fs-3">👋</span></h2>
-            <div class="d-flex gap-2">
-                <a href="book.php" class="btn btn-primary rounded-pill px-4 fw-semibold border-0 text-white shadow-sm" style="background: linear-gradient(90deg, #0d47a1, #1976d2);"><i class="fa-solid fa-plus me-2"></i>New Shipment</a>
+    <div class="main-content">
+        <div class="header">
+            <h1>Dashboard</h1>
+            <div class="profile-circle">
+                <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Profile" style="width:100%; border-radius:50%;">
             </div>
         </div>
 
-        <!-- Quick Stats -->
-        <div class="row g-4 mb-5">
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-4 h-100 p-2">
-                    <div class="card-body p-4 d-flex align-items-center">
-                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
-                            <i class="fa-solid fa-box-open fs-3 text-primary" style="color:#0d47a1!important;"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted mb-1 fw-semibold small text-uppercase">Active Shipments</p>
-                            <h3 class="fw-bold mb-0 text-dark">12</h3>
-                        </div>
-                    </div>
-                </div>
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-header">Active Shipments</div>
+                <div class="stat-value">12</div>
+                <div class="stat-icon blue-icon"><i class="fas fa-truck"></i></div>
+                <div class="stat-chart-container"><canvas id="activeShipmentsChart"></canvas></div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-4 h-100 p-2">
-                    <div class="card-body p-4 d-flex align-items-center">
-                        <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
-                            <i class="fa-solid fa-check-double fs-3 text-success"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted mb-1 fw-semibold small text-uppercase">Delivered</p>
-                            <h3 class="fw-bold mb-0 text-dark">48</h3>
-                        </div>
-                    </div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-header">Pending</div>
+                <div class="stat-value">4</div>
+                <div class="stat-icon orange-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-chart-container"><canvas id="pendingChart"></canvas></div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-4 h-100 p-2">
-                    <div class="card-body p-4 d-flex align-items-center">
-                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
-                            <i class="fa-solid fa-clock-rotate-left fs-3 text-warning"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted mb-1 fw-semibold small text-uppercase">Pending</p>
-                            <h3 class="fw-bold mb-0 text-dark">5</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-4 h-100 p-2">
-                    <div class="card-body p-4 d-flex align-items-center">
-                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle me-3">
-                            <i class="fa-solid fa-triangle-exclamation fs-3 text-danger"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted mb-1 fw-semibold small text-uppercase">Exceptions</p>
-                            <h3 class="fw-bold mb-0 text-dark">1</h3>
-                        </div>
-                    </div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-header">Delivered</div>
+                <div class="stat-value">12</div>
+                <div class="stat-icon green-icon"><i class="fas fa-check"></i></div>
+                <div class="stat-chart-container"><canvas id="deliveredChart"></canvas></div>
             </div>
         </div>
 
-        <!-- Recent Shipments Table -->
-        <div class="card border-0 shadow-sm rounded-4 mb-4">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
-                <h5 class="fw-bold mb-0 text-dark">Recent Activity</h5>
+        <div class="activity-section">
+            <h2 class="activity-header">Recent Shipment Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tracking ID</th>
+                        <th>Origin</th>
+                        <th>Destination</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>00230001</td>
+                        <td>Manila</td>
+                        <td>Batangas</td>
+                        <td>March 22, 2026</td>
+                        <td><span class="status-badge status-in-transit">In Transit</span></td>
+                    </tr>
+                    <tr>
+                        <td>00230002</td>
+                        <td>Manila</td>
+                        <td>Batangas</td>
+                        <td>March 22, 2026</td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td>00230003</td>
+                        <td>Manila</td>
+                        <td>Batangas</td>
+                        <td>March 22, 2026</td>
+                        <td><span class="status-badge status-in-transit">In Transit</span></td>
+                    </tr>
+                    <tr>
+                        <td>00230004</td>
+                        <td>Manila</td>
+                        <td>Batangas</td>
+                        <td>March 22, 2026</td>
+                        <td><span class="status-badge status-in-transit">In Transit</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="notifications-panel">
+        <div class="notifications-header">Notifications & Updates</div>
+        <div class="notification-item">
+            <div class="notif-icon-box"><i class="fas fa-bell"></i></div>
+            <div class="notif-content">
+                <div class="notif-content-title">Shipment Updated</div>
+                <div class="notif-content-text">Your shipment #00230001 has arrived at the Manila hub.</div>
             </div>
-            <div class="card-body px-4 pb-4 pt-2">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light text-muted small text-uppercase">
-                            <tr>
-                                <th class="ps-3 border-0 rounded-start">Tracking No.</th>
-                                <th class="border-0">Destination</th>
-                                <th class="border-0">Type</th>
-                                <th class="border-0">Status</th>
-                                <th class="border-0 rounded-end text-end pe-3">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="ps-3"><a href="track.php" class="fw-semibold text-decoration-none">CRG-99382</a></td>
-                                <td>Rotterdam, NL</td>
-                                <td><i class="fa-solid fa-ship text-muted me-2"></i>Ocean</td>
-                                <td><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 border border-primary border-opacity-25" style="color:#0d47a1!important;">In Transit</span></td>
-                                <td class="text-end pe-3">
-                                    <button class="btn btn-sm btn-light rounded-circle"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3"><a href="track.php" class="fw-semibold text-decoration-none">CRG-10254</a></td>
-                                <td>New York, USA</td>
-                                <td><i class="fa-solid fa-plane text-muted me-2"></i>Air</td>
-                                <td><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 border border-success border-opacity-25">Delivered</span></td>
-                                <td class="text-end pe-3">
-                                    <button class="btn btn-sm btn-light rounded-circle"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3"><a href="track.php" class="fw-semibold text-decoration-none">CRG-88412</a></td>
-                                <td>Shanghai, CN</td>
-                                <td><i class="fa-solid fa-truck text-muted me-2"></i>Ground</td>
-                                <td><span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2 border border-warning border-opacity-25">Pending Custom</span></td>
-                                <td class="text-end pe-3">
-                                    <button class="btn btn-sm btn-light rounded-circle"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+        </div>
+        <div class="notification-item">
+            <div class="notif-icon-box"><i class="fas fa-info-circle"></i></div>
+            <div class="notif-content">
+                <div class="notif-content-title">System Update</div>
+                <div class="notif-content-text">New tracking features have been enabled for your account.</div>
             </div>
         </div>
     </div>
-</main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const getChartData = (color) => ({
+        labels: Array(12).fill(''),
+        datasets: [{
+            data: [12, 19, 13, 15, 22, 10, 15, 25, 20, 28, 22, 30],
+            borderColor: color,
+            borderWidth: 2,
+            tension: 0.4,
+            pointRadius: 0,
+            fill: false,
+        }]
+    });
+
+    const options = {
+        maintainAspectRatio: false,
+        scales: { x: { display: false }, y: { display: false } },
+        plugins: { legend: { display: false } }
+    };
+
+    new Chart(document.getElementById('activeShipmentsChart'), { type: 'line', data: getChartData('#3a76e1'), options });
+    new Chart(document.getElementById('pendingChart'), { type: 'line', data: getChartData('#e1953a'), options });
+    new Chart(document.getElementById('deliveredChart'), { type: 'line', data: getChartData('#22c55e'), options });
+</script>
 
 <?php include 'includes/footer.php'; ?>
