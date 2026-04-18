@@ -79,7 +79,7 @@
             </div>
             
             <!-- 3D Model Container -->
-            <div class="model-container-wrapper mx-auto mt-4 position-relative">
+            <div class="model-container-wrapper mx-auto mt-4 mb-5 position-relative">
                 <div class="glow-effect left-glow"></div>
                 <div class="glow-effect right-glow"></div>
                 <div id="canvas-container" class="w-100 h-100 position-relative z-1">
@@ -88,16 +88,9 @@
             </div>
             
         </div>
-
-        <!-- Dark Navy Footer Curve -->
-        <div class="footer-curve w-100">
-            <svg viewBox="0 0 1440 250" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                <path d="M0 150 C 400 50, 1040 50, 1440 150 L 1440 300 L 0 300 Z" fill="#0b1324"/>
-            </svg>
-            <div class="footer-bg"></div>
-        </div>
-
     </main>
+
+    <?php include 'includes/footer.php'; ?>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.css"></script>
