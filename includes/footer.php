@@ -1,7 +1,7 @@
     <!-- Dark Navy Footer Curve -->
     <div class="footer-curve w-100 mt-auto">
-        <svg viewBox="0 0 1440 250" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display: block; width: 100%; height: auto;">
-            <path d="M0 150 C 400 50, 1040 50, 1440 150 L 1440 300 L 0 300 Z" fill="#0b1324"/>
+        <svg viewBox="0 0 1440 180" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display: block; width: 100%; height: auto;">
+            <path d="M0 100 C 400 0, 1040 0, 1440 100 L 1440 200 L 0 200 Z" fill="#0b1324"/>
         </svg>
         <div class="footer-bg text-center text-white pb-4" style="background-color: #0b1324; margin-top: -5px;">
             <div class="container">
