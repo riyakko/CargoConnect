@@ -1,146 +1,194 @@
 <?php include 'includes/header.php'; ?>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-    .admin-wrapper { min-height: calc(100vh - 74px); }
-    .admin-sidebar { width: 260px; background-color: #0b1324; box-shadow: 4px 0 10px rgba(0,0,0,0.05); position: sticky; top: 74px; height: calc(100vh - 74px); overflow-y: auto;}
-    .nav-pills .nav-link { color: rgba(255,255,255,0.7); }
-    .nav-pills .nav-link.active { background-color: rgba(255,255,255,0.1); color: #fff; font-weight: 600; border-left: 4px solid #f57c00; border-radius: 0; }
-    .nav-pills .nav-link:hover:not(.active) { color: #fff; background-color: rgba(255,255,255,0.05); }
+    :root {
+        --cargo-blue: #1a3b8d;
+        --cargo-orange: #ff7e21;
+    }
+    .admin-wrapper { min-height: 100vh; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; }
+    
+    /* Sidebar */
+    .admin-sidebar { width: 260px; background-color: var(--cargo-blue); color: white; position: fixed; height: 100%; }
+    .brand-area { padding: 20px; display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 35px; height: 35px; background: var(--cargo-orange); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+    
+    .nav-pills .nav-link { color: rgba(255,255,255,0.8); margin: 5px 15px; padding: 12px 15px; border-radius: 8px; transition: 0.3s; }
+    .nav-pills .nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .nav-pills .nav-link.active { background-color: rgba(255,255,255,0.2); border-left: 5px solid #fff; border-radius: 4px; color: #fff; }
+    
+    /* Main Content */
+    .main-content { margin-left: 260px; width: calc(100% - 260px); }
+    .content-header { background: white; padding: 15px 40px; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 1000; }
+    .admin-name { font-weight: 600; font-size: 0.9rem; color: #333; margin-right: 15px; text-transform: uppercase; }
+
+    /* Cards & Tables */
+    .custom-card { background: white; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-radius: 12px; margin-bottom: 30px; }
+    .table-container { padding: 0; overflow: hidden; }
+    .table thead { background-color: #f8f9fa; }
+    .table th { padding: 18px; font-weight: 600; border: none; color: #444; }
+    .table td { padding: 15px; vertical-align: middle; border-top: 1px solid #eee; }
+
+    /* Buttons base sa screenshot */
+    .btn-orange { background-color: var(--cargo-orange); color: white; font-weight: bold; border: none; padding: 10px 20px; border-radius: 6px; }
+    .btn-blue { background-color: #2b63e1; color: white; border: none; font-size: 0.85rem; padding: 6px 15px; }
+    .btn-red { background-color: #ff1a1a; color: white; border: none; font-size: 0.85rem; padding: 6px 15px; }
+    
+    /* Status Labels */
+    .status-pending { color: var(--cargo-orange); font-weight: 500; }
+    .status-approved { color: #28a745; font-weight: 500; }
+    .status-suspended { color: #ff1a1a; font-weight: 500; }
 </style>
 
-<div class="d-flex flex-grow-1 admin-wrapper bg-light">
-    
-    <!-- Left Sidebar -->
-    <div class="admin-sidebar flex-shrink-0 d-none d-lg-block pt-3">
-        <div class="px-4 pb-3 mb-2 border-bottom border-secondary border-opacity-25">
-            <h6 class="text-uppercase text-white-50 small fw-bold mb-0">System Controls</h6>
+<div class="d-flex admin-wrapper">
+    <div class="admin-sidebar flex-shrink-0">
+        <div class="brand-area mb-4">
+            <div class="logo-icon">
+                <i class="fa-solid fa-truck-fast text-white"></i>
+            </div>
+            <h4 class="mb-0 fw-bold">CargoConnect.</h4>
         </div>
-        <ul class="nav nav-pills flex-column mb-auto">
+
+        <ul class="nav nav-pills flex-column">
+            <?php $view = isset($_GET['view']) ? $_GET['view'] : 'users'; ?>
             <li class="nav-item">
-                <a href="#" class="nav-link active px-4 py-3" aria-current="page">
-                    <i class="fa-solid fa-chart-pie me-3 opacity-75"></i>Overview
+                <a href="admin.php?view=users" class="nav-link <?php echo ($view == 'users') ? 'active' : ''; ?>">
+                    <i class="fa-solid fa-user me-3"></i>User Management
                 </a>
             </li>
-            <li>
-                <a href="#" class="nav-link px-4 py-3">
-                    <i class="fa-solid fa-users me-3 opacity-75"></i>User Management
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link px-4 py-3">
-                    <i class="fa-solid fa-truck-fast me-3 opacity-75"></i>Active Routes
-                </a>
-            </li>
-            <li>
-                <a href="manifest.php" class="nav-link px-4 py-3">
-                    <i class="fa-solid fa-file-invoice me-3 opacity-75"></i>Manifests
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link px-4 py-3">
-                    <i class="fa-solid fa-bullhorn me-3 opacity-75"></i>Announcements
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link px-4 py-3">
-                    <i class="fa-solid fa-gear me-3 opacity-75"></i>Platform Settings
+            <li class="nav-item">
+                <a href="admin.php?view=bookings" class="nav-link <?php echo ($view == 'bookings') ? 'active' : ''; ?>">
+                    <i class="fa-solid fa-calendar-days me-3"></i>Bookings
                 </a>
             </li>
         </ul>
     </div>
 
-    <!-- Main Content -->
-    <div class="flex-grow-1 p-4 p-md-5 overflow-auto w-100">
-        
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bolder text-dark mb-0">Admin Dashboard</h3>
-            <button class="btn btn-outline-primary border-primary border-2 fw-semibold px-4 rounded-pill" style="color: #0d47a1; border-color: #0d47a1!important;"><i class="fa-solid fa-download me-2"></i>Export Report</button>
-        </div>
-
-        <!-- Global Stats -->
-        <div class="row g-4 mb-5">
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
-                    <p class="text-muted small fw-bold text-uppercase mb-2"><i class="fa-solid fa-chart-line text-success me-2"></i>Total Revenue</p>
-                    <h2 class="fw-bolder text-dark mb-0">$2.4M</h2>
-                    <p class="text-success small mb-0"><i class="fa-solid fa-arrow-trend-up me-1"></i>+14.5% this month</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
-                    <p class="text-muted small fw-bold text-uppercase mb-2"><i class="fa-solid fa-ship text-blue me-2"></i>Global Volume</p>
-                    <h2 class="fw-bolder text-dark mb-0">8.2k TEUs</h2>
-                    <p class="text-success small mb-0"><i class="fa-solid fa-arrow-trend-up me-1"></i>+2.1% this month</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
-                    <p class="text-muted small fw-bold text-uppercase mb-2"><i class="fa-solid fa-users text-orange me-2"></i>New Users</p>
-                    <h2 class="fw-bolder text-dark mb-0">1,492</h2>
-                    <p class="text-danger small mb-0"><i class="fa-solid fa-arrow-trend-down me-1"></i>-0.4% this month</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
-                    <p class="text-muted small fw-bold text-uppercase mb-2"><i class="fa-solid fa-server text-secondary me-2"></i>System Health</p>
-                    <h2 class="fw-bolder text-dark mb-0 text-success">99.9%</h2>
-                    <p class="text-success small mb-0"><i class="fa-solid fa-circle-check me-1"></i>All APIs Operational</p>
-                </div>
+    <div class="main-content">
+        <div class="content-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0 fw-bold"><?php echo ($view == 'bookings') ? 'Booking Management' : 'User Management'; ?></h2>
+            <div class="d-flex align-items-center">
+                <span class="admin-name">Admin</span>
+                <img src="https://images.uifaces.co/our-content/donated/g-uHq86g_400x400.jpg" class="rounded-circle" width="45" height="45" style="border: 2px solid #eee;">
             </div>
         </div>
 
-        <div class="row g-4">
-            <!-- Alert Log -->
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-                    <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
-                        <h6 class="fw-bold text-dark mb-0">System Alerts & Logs</h6>
-                    </div>
-                    <div class="card-body px-4 pt-2">
-                        <div class="list-group list-group-flush border-top border-bottom">
-                            <div class="list-group-item px-0 py-3 border-light d-flex align-items-center">
-                                <span class="badge bg-danger rounded-circle p-2 me-3"><i class="fa-solid fa-triangle-exclamation"></i></span>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-0 fw-semibold">Port Congestion Alert (Los Angeles)</h6>
-                                    <small class="text-muted">High wait times reported. Impacts 34 active shipments.</small>
-                                </div>
-                                <small class="text-muted">10m ago</small>
-                            </div>
-                            <div class="list-group-item px-0 py-3 border-light d-flex align-items-center">
-                                <span class="badge bg-warning text-dark rounded-circle p-2 me-3"><i class="fa-solid fa-clock"></i></span>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-0 fw-semibold">API Rate Limit Approaching</h6>
-                                    <small class="text-muted">Customs Clearance API is at 92% capacity.</small>
-                                </div>
-                                <small class="text-muted">2h ago</small>
-                            </div>
-                            <div class="list-group-item px-0 py-3 border-light d-flex align-items-center">
-                                <span class="badge bg-info rounded-circle p-2 me-3"><i class="fa-solid fa-user-plus"></i></span>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-0 fw-semibold">New Corporate Account Approved</h6>
-                                    <small class="text-muted">TechGlobal Corp was granted B2B rates.</small>
-                                </div>
-                                <small class="text-muted">5h ago</small>
-                            </div>
-                        </div>
-                    </div>
+        <div class="p-4 mt-2">
+            <?php if ($view == 'bookings'): ?>
+                <div class="custom-card p-4">
+                    <h4 class="fw-bold mb-4">System Volume <small class="text-muted fw-normal">(Last 30 Days)</small></h4>
+                    <div style="height: 300px;"><canvas id="volumeChart"></canvas></div>
                 </div>
-            </div>
 
-            <!-- Mini Map/Visual -->
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column justify-content-center align-items-center bg-blue text-white" style="background:#0d47a1;">
-                    <div class="card-body text-center p-5">
-                       <i class="fa-solid fa-earth-americas display-1 mb-4 opacity-50"></i>
-                       <h4 class="fw-bolder">Global Traffic</h4>
-                       <p class="text-white-50 small mb-4">View real-time movement of all fleet vessels globally.</p>
-                       <button class="btn btn-light text-blue fw-bold rounded-pill px-4">Open Map</button>
+                <div class="custom-card table-container">
+                    <div class="p-4"><h4 class="fw-bold mb-0">Recent Shipment Activity</h4></div>
+                    <div class="table-responsive">
+                        <table class="table mb-0 text-center">
+                            <thead>
+                                <tr><th>User ID</th><th>First Name</th><th>Last Name</th><th>Route</th><th>Status</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                <?php for($i=0; $i<6; $i++): ?>
+                                <tr>
+                                    <td class="text-muted">10325</td>
+                                    <td>Jana</td>
+                                    <td>Hamson</td>
+                                    <td>Manila > Batangas</td>
+                                    <td><span class="<?php echo ($i==0) ? 'status-pending':'status-approved'; ?>"><?php echo ($i==0) ? 'Pending':'Approved'; ?></span></td>
+                                    <td>
+                                        <button class="btn btn-blue rounded-1 me-1">Approve</button>
+                                        <button class="btn btn-red rounded-1">Reject</button>
+                                    </td>
+                                </tr>
+                                <?php endfor; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
+
+            <?php else: ?>
+                <div class="d-flex justify-content-end mb-4 gap-2">
+                    <div class="input-group" style="width: 300px;">
+                        <input type="text" class="form-control border-end-0" placeholder="Search">
+                        <span class="input-group-text bg-white border-start-0"><i class="fa fa-search text-muted"></i></span>
+                    </div>
+                    <select class="form-select" style="width: 150px;"><option>Filter</option></select>
+                    <button class="btn btn-orange text-uppercase">Add New User</button>
+                </div>
+
+                <div class="custom-card table-container">
+                    <div class="table-responsive">
+                        <table class="table mb-0 text-center">
+                            <thead>
+                                <tr><th>User ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted">10325</td>
+                                    <td>Jana Hamson</td>
+                                    <td>jana@mail.com</td>
+                                    <td>Shipper</td>
+                                    <td><span class="status-suspended">Suspended</span></td>
+                                    <td>
+                                        <button class="btn btn-blue rounded-1 me-1">Edit</button>
+                                        <button class="btn btn-red rounded-1">Suspend</button>
+                                    </td>
+                                </tr>
+                                <?php for($i=0; $i<8; $i++): ?>
+                                <tr>
+                                    <td class="text-muted">10325</td>
+                                    <td>Jana</td>
+                                    <td>jana@mail.com</td>
+                                    <td><?php echo ($i==0) ? 'Provider' : 'Admin'; ?></td>
+                                    <td><span class="status-approved"><?php echo ($i==0) ? 'Active' : 'Approved'; ?></span></td>
+                                    <td>
+                                        <button class="btn btn-blue rounded-1 me-1">Edit</button>
+                                        <button class="btn btn-red rounded-1">Suspend</button>
+                                    </td>
+                                </tr>
+                                <?php endfor; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
-        
     </div>
 </div>
+
+<script>
+    if (document.getElementById('volumeChart')) {
+        const ctx = document.getElementById('volumeChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(74, 144, 226, 0.3)');
+        gradient.addColorStop(1, 'rgba(74, 144, 226, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['1', '2', '4', '7', '8', '10', '12', '14', '16', '18', '20', '22', '24', '26', '28', '30'],
+                datasets: [{
+                    data: [10, 28, 29, 38, 55, 58, 65, 80, 85, 95],
+                    borderColor: '#4A90E2',
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#4A90E2'
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+</script>
 
 <?php include 'includes/footer.php'; ?>
