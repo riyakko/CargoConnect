@@ -48,6 +48,13 @@
             </div>
         </div>
     </div>
+    
+    <!-- The following tags were part of the sam branch structure but are not needed for the curve design -->
+    <!-- However, we keep them if they close any parent tags that weren't obvious -->
+    <div class="d-none">
+        </div>
+    </footer>
+
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.css"></script>
@@ -68,19 +75,13 @@
         // Custom interactive script
         document.addEventListener('DOMContentLoaded', () => {
             // Update glass card heights/hover effects dynamically if needed
-            const cards = document.querySelectorAll('.glass-card');
+            const cards = document.querySelectorAll('.glass-card, .card');
             cards.forEach(card => {
-                card.addEventListener('mouseenter', () => card.classList.add('shadow-lg'));
-                card.addEventListener('mouseleave', () => card.classList.remove('shadow-lg'));
+                card.addEventListener('mouseenter', () => card.style.transform = 'translateY(-5px)');
+                card.addEventListener('mouseleave', () => card.style.transform = 'translateY(0)');
+                card.style.transition = 'transform 0.3s ease';
             });
         });
     </script>
-    <style>
-        .hover-white:hover { color: #fff !important; }
-        .bg-blue { background-color: #0d47a1 !important; }
-        .border-blue { border-color: #0d47a1 !important; }
-        .text-blue { color: #0d47a1 !important; }
-        .text-orange { color: #f57c00 !important; }
-    </style>
 </body>
 </html>
