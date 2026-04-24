@@ -207,7 +207,34 @@ main {
     margin: 0; padding: 0; height: 100vh; overflow: hidden; background-color: #f0f2f5; font-family: 'Inter', sans-serif;
 }
 #auth-page .split-container { display: flex; height: 100vh; width: 100vw; }
-#auth-page .left-panel { flex: 1.1; background-color: #f8fafc; position: relative; display: flex; flex-direction: column; overflow: hidden;}
+
+/* Left panel: light top transitioning to dark navy at the bottom via gradient */
+#auth-page .left-panel { 
+    flex: 1.1; 
+    position: relative; 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden;
+    background: linear-gradient(to bottom, #f0f4f8 0%, #f0f4f8 50%, #0f172a 50%, #0f172a 100%);
+}
+
+/* Smooth wave transition between light and dark */
+#auth-page .left-panel::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    /* sits right at the 50% boundary to create a gentle curve */
+    top: calc(50% - 60px);
+    width: 100%;
+    height: 120px;
+    background: inherit;
+    /* Use SVG-based wave via clip-path */
+    clip-path: ellipse(56% 60px at 50% 100%);
+    background: #f0f4f8;
+    z-index: 1;
+    pointer-events: none;
+}
+
 #auth-page .right-panel { flex: 0.9; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
 
 #auth-page .login-card { width: 100%; max-width: 440px; padding: 2rem; }
@@ -225,28 +252,34 @@ main {
 #auth-page .btn-submit { background-color: #F97316; color: white; font-weight: 800; border-radius: 6px; padding: 1rem; border: none; width: 100%; transition: background 0.3s; font-size: 1.1rem; letter-spacing: 0.5px; }
 #auth-page .btn-submit:hover { background-color: #ea580c; color: white; }
 
-#auth-page #canvas-container { height: 50vh; width: 100%; position: absolute; top: 35%; left: 0; z-index: 10; margin-top: -10vh; }
+/* Canvas sits in the center of the panel, straddling the light/dark boundary */
+#auth-page #canvas-container { 
+    height: 55vh; 
+    width: 100%; 
+    position: absolute; 
+    top: 25%; 
+    left: 0; 
+    z-index: 10; 
+}
 
-#auth-page .bottom-dark { 
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 28vh; 
-    background: #0f172a; border-top-right-radius: 20%; border-top-left-radius: 20%; 
-    z-index: 5;
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
-} 
-/* Adding SVG curve to match design perfectly */
-#auth-page .curve-svg { position: absolute; bottom: 27.9vh; left: 0; width: 100%; height: 8vh; z-index: 5; pointer-events: none;}
+/* Hide the old discrete bottom-dark div — the gradient now handles this */
+#auth-page .bottom-dark { display: none; }
+
+/* Hide the old discrete curve SVG — gradient + ::after pseudo-element handles this */
+#auth-page .curve-svg { display: none; }
 
 #auth-page .logo-container { padding: 3rem 4rem; position: relative; z-index: 20; display: flex; align-items: center; }
 #auth-page .content-container { padding: 0 4rem; position: relative; z-index: 20; }
 
-#auth-page .hero-title { font-weight: 600; font-size: 3.5rem; line-height: 1.2; margin-top: 2rem; color: #334155; }
+#auth-page .hero-title { font-weight: 600; font-size: 2.8rem; line-height: 1.2; margin-top: 1rem; color: #334155; }
 #auth-page .hero-title .text-orange { font-weight: 800; color: #F97316; }
 #auth-page .hero-title .text-blue { color: #2563eb; }
 
 #auth-page .decorative-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6; pointer-events: none; }
 
-#auth-page .glow-orange { position: absolute; width: 350px; height: 350px; background: radial-gradient(circle, rgba(249,115,22,0.6) 0%, rgba(249,115,22,0) 70%); top: 50%; left: 10%; z-index: 6; mix-blend-mode: screen; filter: blur(20px); }
-#auth-page .glow-orange-right { position: absolute; width: 250px; height: 250px; background: radial-gradient(circle, rgba(249,115,22,0.4) 0%, rgba(249,115,22,0) 70%); bottom: 20%; right: 20%; z-index: 9; mix-blend-mode: screen; filter: blur(10px); }
+/* Glows sit in the dark lower section */
+#auth-page .glow-orange { position: absolute; width: 320px; height: 320px; background: radial-gradient(circle, rgba(249,115,22,0.55) 0%, rgba(249,115,22,0) 70%); bottom: 5%; left: 5%; z-index: 8; mix-blend-mode: screen; filter: blur(25px); pointer-events: none; }
+#auth-page .glow-orange-right { position: absolute; width: 200px; height: 200px; background: radial-gradient(circle, rgba(249,115,22,0.35) 0%, rgba(249,115,22,0) 70%); bottom: 5%; right: 5%; z-index: 8; mix-blend-mode: screen; filter: blur(15px); pointer-events: none; }
 
 /* ========================================================================= */
 /* DASHBOARD PAGE STYLES (id="dashboard-page") */
