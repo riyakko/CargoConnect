@@ -450,3 +450,150 @@ main {
 
 #dashboard-page .notif-content-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
 #dashboard-page .notif-content-text { color: #666; font-size: 13px; line-height: 1.4; }
+
+/* Book Page Specific Styles */
+#book-page-wrapper {
+    --sidebar-bg: #1e3a8a;
+    --sidebar-active: #3b82f633;
+    --body-bg: #f3f4f6;
+    --accent-blue: #2563eb;
+    --text-gray: #4b5563;
+
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-grow: 1; /* take remaining height after header */
+    background-color: var(--body-bg);
+}
+
+/* Sidebar Styling */
+#book-page-wrapper #book-sidebar {
+    width: 240px;
+    background-color: var(--sidebar-bg);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+}
+
+#book-page-wrapper #book-sidebar .logo {
+    padding: 0 25px 30px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+#book-page-wrapper #book-sidebar .logo span { color: #f97316; }
+
+#book-page-wrapper #book-sidebar .nav-item {
+    padding: 15px 25px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: 0.3s;
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+
+#book-page-wrapper #book-sidebar .nav-item:hover, 
+#book-page-wrapper #book-sidebar .nav-item.active {
+    background-color: var(--sidebar-active);
+    opacity: 1;
+    border-left: 4px solid white;
+}
+
+/* Main Content Area */
+#book-page-wrapper #book-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#book-page-wrapper #book-main header {
+    background: white;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#book-page-wrapper .container {
+    padding: 40px;
+    max-width: 1000px;
+}
+
+#book-page-wrapper .booking-card {
+    background: white;
+    border-radius: 8px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+#book-page-wrapper h1 { margin-top: 0; margin-bottom: 30px; font-size: 1.8rem; color: #111; }
+
+/* Form Grid */
+#book-page-wrapper .form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+#book-page-wrapper .section-title {
+    font-weight: bold;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    color: #000;
+}
+
+#book-page-wrapper .form-group { margin-bottom: 15px; }
+
+#book-page-wrapper label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin-bottom: 5px;
+}
+
+#book-page-wrapper input, 
+#book-page-wrapper select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background: #fafafa;
+}
+
+/* Specialized input row for Item Description */
+#book-page-wrapper .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+#book-page-wrapper .btn-confirm {
+    grid-column: span 3;
+    background-color: var(--accent-blue);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+#book-page-wrapper .btn-confirm:hover { background-color: #1d4ed8; }
+
+#book-page-wrapper .profile-icon {
+    width: 35px;
+    height: 35px;
+    background: #e5e7eb;
+    border-radius: 50%;
+}
