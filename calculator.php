@@ -1,109 +1,146 @@
-<?php include 'includes/header.php'; ?>
+<?php
+require_once 'includes/auth_check.php';
+$page_title = 'Rate Calculator';
+$active_page = 'calculator';
 
-<main class="flex-grow-1 py-5 bg-light position-relative overflow-hidden">
-    <div class="decorative-swoosh right-swoosh" style="opacity:0.1"></div>
-    <div class="container position-relative z-2">
-        
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="text-center mb-4">
-                    <h2 class="fw-bolder text-dark">Instant <span class="text-blue">Rate Calculator</span></h2>
-                    <p class="text-muted">Get a transparent, estimated shipping cost in seconds.</p>
+// Load shipping rates from DB
+$rates_data = [];
+if ($conn) {
+    $r = $conn->query("SELECT * FROM shipping_rates ORDER BY cargo_type, weight");
+    if ($r) { while ($row = $r->fetch_assoc()) $rates_data[] = $row; }
+}
+
+// Calculate on submit
+$result = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $cargo_type = $_POST['cargo_type'] ?? 'General';
+    $weight = floatval($_POST['weight'] ?? 0);
+    $distance = floatval($_POST['distance'] ?? 0);
+    $method = $_POST['shipping_method'] ?? 'container';
+
+    // Try to find a matching rate from DB
+    $base_rate = 2.50; // fallback
+    if ($conn) {
+        $stmt = $conn->prepare("SELECT base_rate, calculated_cost FROM shipping_rates WHERE cargo_type = ? ORDER BY ABS(weight - ?) LIMIT 1");
+        $stmt->bind_param('sd', $cargo_type, $weight);
+        $stmt->execute();
+        $rr = $stmt->get_result();
+        if ($rr->num_rows > 0) {
+            $rate_row = $rr->fetch_assoc();
+            $base_rate = floatval($rate_row['base_rate']);
+        }
+        $stmt->close();
+    }
+
+    // Rate multiplier by method
+    $method_mult = ($method === 'truck') ? 1.5 : 1.0;
+
+    // Calculate
+    $base_cost = $weight * $base_rate * $method_mult;
+    $distance_surcharge = $distance * 0.05;
+    $total = $base_cost + $distance_surcharge;
+
+    $result = [
+        'total' => $total,
+        'base_cost' => $base_cost,
+        'distance_surcharge' => $distance_surcharge,
+        'base_rate' => $base_rate,
+        'weight' => $weight,
+        'method' => $method,
+        'cargo_type' => $cargo_type,
+    ];
+}
+?>
+<?php include 'includes/app_head.php'; ?>
+<?php include 'includes/sidebar.php'; ?>
+
+<div class="cc-main">
+    <div class="cc-topbar">
+        <span class="cc-topbar-title"><i class="fas fa-calculator text-blue me-2"></i>Rate Calculator</span>
+        <div class="cc-topbar-actions"><div class="cc-avatar"><?php echo $user_initials; ?></div></div>
+    </div>
+
+    <div class="cc-page">
+        <h2 class="cc-page-title">Instant <span class="text-blue">Rate Calculator</span></h2>
+        <p class="cc-page-subtitle">Get a transparent, estimated shipping cost in seconds.</p>
+
+        <div class="cc-calc-card">
+            <div class="cc-card">
+                <div class="cc-card-body" style="padding: 32px;">
+                    <form method="POST" action="calculator.php">
+
+                        <!-- Shipping Method -->
+                        <div class="mb-4">
+                            <label class="cc-form-label">Shipping Method</label>
+                            <div class="cc-mode-group">
+                                <input type="radio" name="shipping_method" id="modeContainer" value="container" <?php echo (!$result || $result['method']==='container') ? 'checked' : ''; ?>>
+                                <label class="cc-mode-label" for="modeContainer"><i class="fas fa-ship text-blue me-2"></i>Container</label>
+
+                                <input type="radio" name="shipping_method" id="modeTruck" value="truck" <?php echo ($result && $result['method']==='truck') ? 'checked' : ''; ?>>
+                                <label class="cc-mode-label" for="modeTruck"><i class="fas fa-truck me-2" style="color:#6b7280"></i>Truck</label>
+                            </div>
+                        </div>
+
+                        <hr style="border-color:#f3f4f6; margin: 24px 0;">
+
+                        <!-- Cargo Type -->
+                        <div class="mb-3">
+                            <label class="cc-form-label">Cargo Type</label>
+                            <select name="cargo_type" class="cc-form-control cc-form-select">
+                                <option value="General" <?php echo ($result && $result['cargo_type']==='General') ? 'selected' : ''; ?>>General</option>
+                                <option value="Fragile" <?php echo ($result && $result['cargo_type']==='Fragile') ? 'selected' : ''; ?>>Fragile</option>
+                                <option value="Perishable" <?php echo ($result && $result['cargo_type']==='Perishable') ? 'selected' : ''; ?>>Perishable</option>
+                                <option value="Hazardous" <?php echo ($result && $result['cargo_type']==='Hazardous') ? 'selected' : ''; ?>>Hazardous</option>
+                                <option value="Electronics" <?php echo ($result && $result['cargo_type']==='Electronics') ? 'selected' : ''; ?>>Electronics</option>
+                            </select>
+                        </div>
+
+                        <!-- Weight & Distance -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <label class="cc-form-label">Weight (KG)</label>
+                                <input type="number" name="weight" class="cc-form-control" value="<?php echo $_POST['weight'] ?? '1000'; ?>" min="1" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="cc-form-label">Distance (KM)</label>
+                                <input type="number" name="distance" class="cc-form-control" value="<?php echo $_POST['distance'] ?? '500'; ?>" min="1" required>
+                            </div>
+                        </div>
+
+                        <!-- Result -->
+                        <div class="cc-calc-result mb-4">
+                            <?php if ($result): ?>
+                            <div class="cc-calc-result-label">Estimated Total Cost</div>
+                            <div class="cc-calc-result-value">
+                                $ <?php echo number_format(floor($result['total']), 0, '.', ','); ?><span class="cents">.<?php echo str_pad(round(($result['total'] - floor($result['total'])) * 100), 2, '0', STR_PAD_LEFT); ?></span>
+                            </div>
+                            <small style="color:var(--cc-text-muted);">
+                                Base: $<?php echo number_format($result['base_cost'], 2); ?> 
+                                (<?php echo $result['weight']; ?>kg × $<?php echo number_format($result['base_rate'], 2); ?>/kg)
+                                + Distance: $<?php echo number_format($result['distance_surcharge'], 2); ?>
+                            </small>
+                            <?php else: ?>
+                            <div class="cc-calc-result-label">Estimated Cost</div>
+                            <div class="cc-calc-result-value">$ 0<span class="cents">.00</span></div>
+                            <small style="color:var(--cc-text-muted);">Fill in the form and click Calculate.</small>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="cc-btn cc-btn-primary justify-content-center" style="padding: 14px;">
+                                <i class="fas fa-calculator"></i> Calculate Rate
+                            </button>
+                            <?php if ($result): ?>
+                            <a href="book.php" class="cc-btn cc-btn-orange justify-content-center" style="padding: 14px;">
+                                <i class="fas fa-arrow-right"></i> Proceed with Booking
+                            </a>
+                            <?php endif; ?>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div class="card-body p-4 p-md-5">
-                        <form action="calculator.php" method="POST">
-                            
-                            <!-- Mode Selection -->
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold text-muted text-uppercase small">Transport Mode</label>
-                                <div class="btn-group w-100 shadow-sm rounded-3">
-                                    <input type="radio" class="btn-check" name="mode" id="modeOcean" checked>
-                                    <label class="btn btn-outline-primary px-3 py-2 fw-semibold" for="modeOcean"><i class="fa-solid fa-anchor me-2 text-primary"></i>Ocean</label>
-
-                                    <input type="radio" class="btn-check" name="mode" id="modeAir">
-                                    <label class="btn btn-outline-primary px-3 py-2 fw-semibold" for="modeAir"><i class="fa-solid fa-plane text-info me-2"></i>Air</label>
-
-                                    <input type="radio" class="btn-check" name="mode" id="modeRoad">
-                                    <label class="btn btn-outline-primary px-3 py-2 fw-semibold" for="modeRoad"><i class="fa-solid fa-truck text-secondary me-2"></i>Road</label>
-                                </div>
-                            </div>
-
-                            <hr class="border-light-subtle my-4">
-
-                            <!-- Details -->
-                            <div class="row g-3 mb-4">
-                                <div class="col-6">
-                                    <label class="form-label fw-semibold text-muted text-uppercase small">Weight (KG)</label>
-                                    <input type="number" class="form-control bg-light border-0 py-2 shadow-sm rounded-3" value="1000">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label fw-semibold text-muted text-uppercase small">Volume (CBM)</label>
-                                    <input type="number" class="form-control bg-light border-0 py-2 shadow-sm rounded-3" value="2.5">
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold text-muted text-uppercase small">Origin Zone</label>
-                                <select class="form-select bg-light border-0 py-2 shadow-sm rounded-3">
-                                    <option>North America (East Coast)</option>
-                                    <option>North America (West Coast)</option>
-                                    <option>Europe (Western)</option>
-                                    <option>Asia (East)</option>
-                                    <option>Middle East</option>
-                                </select>
-                            </div>
-                            <div class="mb-5">
-                                <label class="form-label fw-semibold text-muted text-uppercase small">Destination Zone</label>
-                                <select class="form-select bg-light border-0 py-2 shadow-sm rounded-3">
-                                    <option>Europe (Western)</option>
-                                    <option>North America (East Coast)</option>
-                                    <option>North America (West Coast)</option>
-                                    <option>Asia (East)</option>
-                                    <option>Middle East</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Placeholder Result -->
-                            <div class="bg-primary bg-opacity-10 p-4 rounded-4 mb-4 text-center border border-primary border-opacity-25">
-                                <p class="text-primary fw-bold text-uppercase small mb-1">Estimated Cost</p>
-                                <h2 class="display-6 fw-bold text-dark mb-0">$ 1,245<span class="fs-5 text-muted fw-normal">.50</span></h2>
-                                <small class="text-muted">Incl. standard customs clearance.</small>
-                            </div>
-
-                            <div class="d-grid">
-                                <a href="book.php" class="btn btn-primary py-3 rounded-pill fw-bold border-0 shadow-sm" style="background:#0d47a1;">Proceed with Booking</a>
-                            </div>
-
-                        </form>
-                    </div>
-                </div>
-                
             </div>
         </div>
-
     </div>
-</main>
-<style>
-    .btn-check:checked + .btn-outline-primary {
-        background-color: #0d47a1 !important;
-        border-color: #0d47a1 !important;
-        color: white !important;
-    }
-    .btn-check:checked + .btn-outline-primary i {
-        color: white !important;
-    }
-    .btn-outline-primary {
-        border-color: #e9ecef;
-        color: #495057;
-        background-color: #f8f9fa;
-    }
-    .btn-outline-primary:hover {
-        background-color: #e9ecef;
-        color: #212529;
-        border-color: #e9ecef;
-    }
-</style>
+</div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include 'includes/app_foot.php'; ?>
