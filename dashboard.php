@@ -1,140 +1,169 @@
-<?php include 'includes/header.php'; ?>
+<?php
+require_once 'includes/auth_check.php';
+$page_title = 'Dashboard';
+$active_page = 'dashboard';
 
-<style>
-    .sidebar { width: 260px; background-color: #1e3a8a; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; padding: 25px 0; height: calc(100vh - 76px); position: sticky; top: 76px; }
-    .sidebar .nav-link { display: flex; align-items: center; padding: 14px 25px; color: rgba(255,255,255,0.7); text-decoration: none; transition: 0.3s; font-size: 15px; }
-    .sidebar .nav-link i { width: 25px; font-size: 18px; margin-right: 15px; }
-    .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: rgba(255,255,255,0.1); color: #fff; }
-    .sidebar .nav-link.active { border-left: 4px solid #fff; }
-    .notifications-panel { width: 300px; background-color: #fff; border-left: 1px solid #e5e7eb; padding: 30px 20px; flex-shrink: 0; overflow-y: auto; height: calc(100vh - 76px); position: sticky; top: 76px; }
-    .stat-card { background-color: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column; min-height: 180px; }
-    .stat-chart-container { height: 80px; margin-top: auto; }
-    .wave { animation-name: wave-animation; animation-duration: 2.5s; animation-iteration-count: infinite; transform-origin: 70% 70%; display: inline-block; } @keyframes wave-animation { 0% { transform: rotate( 0.0deg) } 10% { transform: rotate(14.0deg) }  20% { transform: rotate(-8.0deg) } 30% { transform: rotate(14.0deg) } 40% { transform: rotate(-4.0deg) } 50% { transform: rotate(10.0deg) } 60% { transform: rotate( 0.0deg) } 100% { transform: rotate( 0.0deg) } }
-</style>
+// Fetch summary counts from shipments table
+$total_active = 0; $total_pending = 0; $total_delivered = 0;
+$recent = [];
 
-<div class="d-flex overflow-hidden">
-    <!-- Sidebar from Leader's changes -->
-    <nav class="sidebar d-none d-lg-flex">
-        <a href="dashboard.php" class="nav-link active"><i class="fas fa-th-large"></i> Dashboard</a>
-        <a href="book.php" class="nav-link"><i class="fas fa-calendar-check"></i> Bookings</a>
-        <a href="calculator.php" class="nav-link"><i class="fas fa-calculator"></i> Calculator</a>
-        <a href="track.php" class="nav-link"><i class="fas fa-location-arrow"></i> Tracking</a>
-        <a href="manifest.php" class="nav-link"><i class="fas fa-file-invoice"></i> Manifests</a>
-    </nav>
+if ($conn) {
+    $r = $conn->query("SELECT COUNT(*) as c FROM shipments WHERE status='In Transit'");
+    if ($r) $total_active = $r->fetch_assoc()['c'];
 
-    <main class="flex-grow-1 bg-light py-4 px-4 overflow-auto" style="height: calc(100vh - 76px);">
-        <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold mb-0 text-dark">Hello, John <span class="wave fs-3">👋</span></h2>
-                <div class="d-flex gap-2">
-                    <a href="book.php" class="btn btn-primary rounded-pill px-4 fw-semibold border-0 text-white shadow-sm" style="background: linear-gradient(90deg, #0d47a1, #1976d2);"><i class="fa-solid fa-plus me-2"></i>New Shipment</a>
-                </div>
-            </div>
+    $r = $conn->query("SELECT COUNT(*) as c FROM shipments WHERE status='Pending'");
+    if ($r) $total_pending = $r->fetch_assoc()['c'];
 
-            <!-- Stats Section (Mixed) -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-4">
-                    <div class="stat-card shadow-sm border-0">
-                        <div class="stat-header text-muted small fw-bold text-uppercase">Active Shipments</div>
-                        <div class="stat-value fs-1 fw-bold">12</div>
-                        <div class="stat-chart-container"><canvas id="activeShipmentsChart"></canvas></div>
+    $r = $conn->query("SELECT COUNT(*) as c FROM shipments WHERE status IN ('Arrived','Completed')");
+    if ($r) $total_delivered = $r->fetch_assoc()['c'];
+
+    $r = $conn->query("SELECT * FROM shipments ORDER BY date_created DESC LIMIT 5");
+    if ($r) { while ($row = $r->fetch_assoc()) $recent[] = $row; }
+}
+
+// Fetch notifications
+$notifications = [];
+if ($conn) {
+    $r = $conn->query("SELECT * FROM notifications ORDER BY date_sent DESC LIMIT 5");
+    if ($r) { while ($row = $r->fetch_assoc()) $notifications[] = $row; }
+}
+?>
+<?php include 'includes/app_head.php'; ?>
+<?php include 'includes/sidebar.php'; ?>
+
+<div class="cc-main">
+    <div class="cc-topbar">
+        <span class="cc-topbar-title"><i class="fas fa-gauge-high text-blue me-2"></i>Dashboard</span>
+        <div class="cc-topbar-actions">
+            <a href="book.php" class="cc-btn cc-btn-primary cc-btn-sm"><i class="fas fa-plus"></i> New Shipment</a>
+            <div class="cc-avatar"><?php echo $user_initials; ?></div>
+        </div>
+    </div>
+
+    <div class="cc-page">
+        <h2 class="cc-page-title">Hello, <?php echo htmlspecialchars($current_user['first_name']); ?> <span class="wave">👋</span></h2>
+        <p class="cc-page-subtitle">Here's your logistics overview for today.</p>
+
+        <div class="d-flex gap-4">
+            <div class="flex-grow-1">
+                <!-- Stats -->
+                <div class="cc-stats-grid mb-4">
+                    <div class="cc-stat-card">
+                        <div class="cc-stat-label">In Transit</div>
+                        <div class="cc-stat-value"><?php echo $total_active; ?></div>
+                        <div class="cc-stat-chart"><canvas id="chartActive"></canvas></div>
+                    </div>
+                    <div class="cc-stat-card">
+                        <div class="cc-stat-label">Pending</div>
+                        <div class="cc-stat-value"><?php echo $total_pending; ?></div>
+                        <div class="cc-stat-chart"><canvas id="chartPending"></canvas></div>
+                    </div>
+                    <div class="cc-stat-card">
+                        <div class="cc-stat-label">Completed</div>
+                        <div class="cc-stat-value"><?php echo $total_delivered; ?></div>
+                        <div class="cc-stat-chart"><canvas id="chartDelivered"></canvas></div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="stat-card shadow-sm border-0">
-                        <div class="stat-header text-muted small fw-bold text-uppercase">Pending</div>
-                        <div class="stat-value fs-1 fw-bold">4</div>
-                        <div class="stat-chart-container"><canvas id="pendingChart"></canvas></div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stat-card shadow-sm border-0">
-                        <div class="stat-header text-muted small fw-bold text-uppercase">Delivered</div>
-                        <div class="stat-value fs-1 fw-bold">48</div>
-                        <div class="stat-chart-container"><canvas id="deliveredChart"></canvas></div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Recent Shipments Table -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">Recent Shipment Activity</h5>
-                </div>
-                <div class="card-body px-4 pb-4 pt-2">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light text-muted small text-uppercase">
+                <!-- Recent Shipments -->
+                <div class="cc-card">
+                    <div class="cc-card-header">
+                        <h5><i class="fas fa-clock-rotate-left text-orange me-2"></i>Recent Shipment Activity</h5>
+                    </div>
+                    <div class="cc-card-body p-0">
+                        <table class="cc-table">
+                            <thead>
                                 <tr>
-                                    <th class="ps-3 border-0">Tracking No.</th>
-                                    <th class="border-0">Destination</th>
-                                    <th class="border-0">Type</th>
-                                    <th class="border-0">Status</th>
-                                    <th class="border-0 text-end pe-3">Action</th>
+                                    <th>Tracking ID</th>
+                                    <th>Origin</th>
+                                    <th>Destination</th>
+                                    <th>Cargo Type</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="ps-3"><a href="track.php" class="fw-semibold text-decoration-none">CRG-99382</a></td>
-                                    <td>Rotterdam, NL</td>
-                                    <td><i class="fa-solid fa-ship text-muted me-2"></i>Ocean</td>
-                                    <td><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 border border-primary border-opacity-25" style="color:#0d47a1!important;">In Transit</span></td>
-                                    <td class="text-end pe-3"><button class="btn btn-sm btn-light rounded-circle"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-3"><a href="track.php" class="fw-semibold text-decoration-none">CRG-10254</a></td>
-                                    <td>New York, USA</td>
-                                    <td><i class="fa-solid fa-plane text-muted me-2"></i>Air</td>
-                                    <td><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 border border-success border-opacity-25">Delivered</span></td>
-                                    <td class="text-end pe-3"><button class="btn btn-sm btn-light rounded-circle"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
-                                </tr>
+                                <?php if (!empty($recent)): ?>
+                                    <?php foreach ($recent as $s): ?>
+                                    <tr>
+                                        <td><a href="track.php?id=<?php echo urlencode($s['tracking_id']); ?>" class="fw-semibold text-decoration-none"><?php echo htmlspecialchars($s['tracking_id']); ?></a></td>
+                                        <td><?php echo htmlspecialchars($s['origin']); ?></td>
+                                        <td><?php echo htmlspecialchars($s['destination']); ?></td>
+                                        <td><?php echo htmlspecialchars($s['cargo_type']); ?></td>
+                                        <td>
+                                            <?php if ($s['shipping_method'] === 'container'): ?>
+                                                <i class="fa-solid fa-ship text-muted me-1"></i>Container
+                                            <?php else: ?>
+                                                <i class="fa-solid fa-truck text-muted me-1"></i>Truck
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            $badge = 'cc-badge-gray';
+                                            if ($s['status'] === 'In Transit') $badge = 'cc-badge-blue';
+                                            elseif (in_array($s['status'], ['Arrived','Completed'])) $badge = 'cc-badge-green';
+                                            elseif ($s['status'] === 'Pending') $badge = 'cc-badge-orange';
+                                            ?>
+                                            <span class="cc-badge <?php echo $badge; ?>"><?php echo htmlspecialchars($s['status']); ?></span>
+                                        </td>
+                                        <td class="text-end"><a href="track.php?id=<?php echo urlencode($s['tracking_id']); ?>" class="cc-btn cc-btn-light cc-btn-sm">View</a></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr><td colspan="7" class="text-center" style="padding:40px;color:var(--cc-text-muted);">
+                                        <i class="fas fa-inbox me-2" style="font-size:1.5rem;"></i><br>
+                                        No shipments yet. <a href="book.php" class="text-decoration-none fw-semibold">Create your first booking</a>.
+                                    </td></tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
 
-    <!-- Notifications Panel from Leader's changes -->
-    <aside class="notifications-panel d-none d-xl-flex">
-        <div class="w-100">
-            <h6 class="fw-bold text-dark mb-4">Notifications & Updates</h6>
-            <div class="d-flex gap-3 mb-4 pb-3 border-bottom">
-                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 40px; height: 40px;"><i class="fas fa-bell text-muted"></i></div>
-                <div>
-                    <h6 class="fw-bold small mb-1">Shipment Updated</h6>
-                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Your shipment #CRG-99382 has arrived at the hub.</p>
-                </div>
-            </div>
-            <div class="d-flex gap-3 mb-4 pb-3 border-bottom">
-                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 40px; height: 40px;"><i class="fas fa-info-circle text-muted"></i></div>
-                <div>
-                    <h6 class="fw-bold small mb-1">System Update</h6>
-                    <p class="text-muted mb-0" style="font-size: 0.8rem;">New tracking features enabled.</p>
+            <!-- Notifications Panel -->
+            <div class="cc-notif-panel d-none d-xl-block">
+                <div class="cc-card">
+                    <div class="cc-card-header"><h5><i class="fas fa-bell text-orange me-2"></i>Notifications</h5></div>
+                    <div class="cc-card-body">
+                        <?php if (!empty($notifications)): ?>
+                            <?php foreach ($notifications as $n): ?>
+                            <div class="cc-notif-item">
+                                <div class="cc-notif-icon"><i class="fas fa-<?php echo $n['status'] === 'unread' ? 'bell' : 'check-circle'; ?>"></i></div>
+                                <div class="cc-notif-text">
+                                    <h6><?php echo htmlspecialchars(mb_strimwidth($n['message'], 0, 40, '...')); ?></h6>
+                                    <p><?php echo date('M d, h:i A', strtotime($n['date_sent'])); ?></p>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p style="color:var(--cc-text-muted);text-align:center;padding:20px 0;font-size:0.85rem;">No notifications yet.</p>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
-    </aside>
+    </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const getChartData = (color) => ({
-        labels: Array(12).fill(''),
-        datasets: [{
-            data: [12, 19, 13, 15, 22, 10, 15, 25, 20, 28, 22, 30],
-            borderColor: color,
-            borderWidth: 2,
-            tension: 0.4,
-            pointRadius: 0,
-            fill: false,
-        }]
+const sparkOpts = {
+    maintainAspectRatio: false,
+    scales: { x: { display: false }, y: { display: false } },
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    elements: { point: { radius: 0 } }
+};
+function spark(id, color) {
+    new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels: Array(12).fill(''), datasets: [{ data: [12,19,13,15,22,10,15,25,20,28,22,30], borderColor: color, borderWidth: 2, tension: 0.4, fill: false }] },
+        options: sparkOpts
     });
-    const options = { maintainAspectRatio: false, scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false } } };
-    new Chart(document.getElementById('activeShipmentsChart'), { type: 'line', data: getChartData('#3a76e1'), options });
-    new Chart(document.getElementById('pendingChart'), { type: 'line', data: getChartData('#e1953a'), options });
-    new Chart(document.getElementById('deliveredChart'), { type: 'line', data: getChartData('#22c55e'), options });
+}
+spark('chartActive', '#2563eb');
+spark('chartPending', '#f59e0b');
+spark('chartDelivered', '#16a34a');
 </script>
 
-<?php include 'includes/footer.php'; ?>
+<?php include 'includes/app_foot.php'; ?>

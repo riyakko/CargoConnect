@@ -1,5 +1,109 @@
 <?php
+session_start();
+require_once 'includes/db.php';
+
 $page_title = "Login | CargoConnect";
+$error = '';
+$success = '';
+$show_register = isset($_GET['action']) && $_GET['action'] === 'register';
+
+// Handle LOGOUT
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_destroy();
+    header('Location: auth.php');
+    exit;
+}
+
+// Already logged in? Redirect to dashboard
+if (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0) {
+    header('Location: dashboard.php');
+    exit;
+}
+
+// Handle LOGIN
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POST['form_type'] === 'login') {
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if ($email && $password && $conn) {
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? AND status = 'active'");
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $r = $stmt->get_result();
+
+        if ($r->num_rows > 0) {
+            $user = $r->fetch_assoc();
+            if (password_verify($password, $user['password'])) {
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['user_role'] = $user['role'];
+
+                // Redirect admin to admin page, customer to dashboard
+                if ($user['role'] === 'admin') {
+                    header('Location: admin.php');
+                } else {
+                    header('Location: dashboard.php');
+                }
+                exit;
+            } else {
+                $error = 'Invalid password. Please try again.';
+            }
+        } else {
+            $error = 'No account found with that email.';
+        }
+        $stmt->close();
+    } else {
+        $error = $conn ? 'Please fill in all fields.' : 'Database connection error.';
+    }
+}
+
+// Handle REGISTER
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POST['form_type'] === 'register') {
+    $full_name = trim($_POST['full_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm = $_POST['confirm_password'] ?? '';
+    $show_register = true;
+
+    if (!$full_name || !$email || !$password) {
+        $error = 'Please fill in all required fields.';
+    } elseif ($password !== $confirm) {
+        $error = 'Passwords do not match.';
+    } elseif (strlen($password) < 6) {
+        $error = 'Password must be at least 6 characters.';
+    } elseif ($conn) {
+        // Check if email already exists
+        $check = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
+        $check->bind_param('s', $email);
+        $check->execute();
+        if ($check->get_result()->num_rows > 0) {
+            $error = 'An account with this email already exists.';
+        } else {
+            // Split full name
+            $parts = explode(' ', $full_name, 2);
+            $first_name = $parts[0];
+            $last_name = $parts[1] ?? '';
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
+
+            $stmt = $conn->prepare("INSERT INTO users (first_name, last_name, email, password, role, contact_number, status) VALUES (?, ?, ?, ?, 'customer', ?, 'active')");
+            $stmt->bind_param('sssss', $first_name, $last_name, $email, $hashed, $phone);
+
+            if ($stmt->execute()) {
+                // Auto-login after registration
+                $_SESSION['user_id'] = $conn->insert_id;
+                $_SESSION['user_role'] = 'customer';
+                header('Location: dashboard.php');
+                exit;
+            } else {
+                $error = 'Registration failed. Please try again.';
+            }
+            $stmt->close();
+        }
+        $check->close();
+    } else {
+        $error = 'Database connection error.';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -7,15 +111,11 @@ $page_title = "Login | CargoConnect";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?></title>
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <!-- Custom Styles -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body id="auth-page">
@@ -40,10 +140,8 @@ $page_title = "Login | CargoConnect";
                 </h1>
             </div>
             
-            <!-- 3D Model -->
             <div id="canvas-container"></div>
 
-            <!-- Background Elements -->
             <div class="decorative-path">
                 <svg width="100%" height="100%" viewBox="0 0 1000 800" preserveAspectRatio="none">
                     <path d="M 100 650 Q 200 700 450 550" fill="none" stroke="#3b82f6" stroke-width="2.5" />
@@ -66,15 +164,28 @@ $page_title = "Login | CargoConnect";
         <div class="right-panel">
             <div class="login-card">
                 <div class="toggle-switch">
-                    <div class="toggle-btn active" id="btn-login">LOGIN</div>
-                    <div class="toggle-btn" id="btn-register">REGISTER</div>
+                    <div class="toggle-btn <?php echo !$show_register ? 'active' : ''; ?>" id="btn-login">LOGIN</div>
+                    <div class="toggle-btn <?php echo $show_register ? 'active' : ''; ?>" id="btn-register">REGISTER</div>
                 </div>
 
+                <?php if ($error): ?>
+                <div class="alert alert-danger py-2 mb-3" style="font-size:0.85rem;border-radius:6px;">
+                    <i class="fas fa-exclamation-circle me-1"></i><?php echo htmlspecialchars($error); ?>
+                </div>
+                <?php endif; ?>
+
+                <?php if ($success): ?>
+                <div class="alert alert-success py-2 mb-3" style="font-size:0.85rem;border-radius:6px;">
+                    <i class="fas fa-check-circle me-1"></i><?php echo htmlspecialchars($success); ?>
+                </div>
+                <?php endif; ?>
+
                 <!-- Login Form -->
-                <form id="form-login" action="dashboard.php" method="GET">
+                <form id="form-login" action="auth.php" method="POST" class="<?php echo $show_register ? 'd-none' : ''; ?>">
+                    <input type="hidden" name="form_type" value="login">
                     <div class="mb-4">
                         <label class="form-label">Email Address</label>
-                        <input type="email" class="form-control" placeholder="Email Address" required>
+                        <input type="email" name="email" class="form-control" placeholder="Email Address" required>
                     </div>
                     <div class="mb-4 position-relative">
                          <div class="d-flex justify-content-between align-items-center mb-1">
@@ -82,7 +193,7 @@ $page_title = "Login | CargoConnect";
                              <a href="#" class="text-decoration-none fw-medium" style="color: #2563eb; font-size: 0.9rem;">Forgot Password?</a>
                          </div>
                         <div class="position-relative">
-                            <input type="password" id="loginPasswordField" class="form-control pe-5" placeholder="Password" required>
+                            <input type="password" name="password" id="loginPasswordField" class="form-control pe-5" placeholder="Password" required>
                             <span class="position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; color: #64748b;" onclick="togglePassword('loginPasswordField', this.children[0])">
                                 <i class="fa-solid fa-eye-slash"></i>
                             </span>
@@ -97,23 +208,24 @@ $page_title = "Login | CargoConnect";
                 </form>
 
                 <!-- Register Form -->
-                <form id="form-register" action="dashboard.php" method="POST" class="d-none">
+                <form id="form-register" action="auth.php" method="POST" class="<?php echo !$show_register ? 'd-none' : ''; ?>">
+                    <input type="hidden" name="form_type" value="register">
                     <div class="mb-3">
                         <label class="form-label">Full Name</label>
-                        <input type="text" class="form-control" placeholder="Name" required>
+                        <input type="text" name="full_name" class="form-control" placeholder="First Last" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email Address</label>
-                        <input type="email" class="form-control" placeholder="Email Address" required>
+                        <input type="email" name="email" class="form-control" placeholder="Email Address" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Phone Number</label>
-                        <input type="tel" class="form-control" placeholder="Phone Number" required>
+                        <input type="tel" name="phone" class="form-control" placeholder="Phone Number">
                     </div>
                     <div class="mb-3 position-relative">
                         <label class="form-label mb-1">Password</label>
                         <div class="position-relative">
-                            <input type="password" id="regPasswordField" class="form-control pe-5" placeholder="Password" required>
+                            <input type="password" name="password" id="regPasswordField" class="form-control pe-5" placeholder="Password (min 6 chars)" required minlength="6">
                             <span class="position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; color: #64748b;" onclick="togglePassword('regPasswordField', this.children[0])">
                                 <i class="fa-solid fa-eye-slash"></i>
                             </span>
@@ -122,7 +234,7 @@ $page_title = "Login | CargoConnect";
                     <div class="mb-4 position-relative">
                         <label class="form-label mb-1">Confirm Password</label>
                         <div class="position-relative">
-                            <input type="password" id="regConfirmPasswordField" class="form-control pe-5" placeholder="Confirm Password" required>
+                            <input type="password" name="confirm_password" id="regConfirmPasswordField" class="form-control pe-5" placeholder="Confirm Password" required>
                             <span class="position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; color: #64748b;" onclick="togglePassword('regConfirmPasswordField', this.children[0])">
                                 <i class="fa-solid fa-eye-slash"></i>
                             </span>
@@ -137,9 +249,7 @@ $page_title = "Login | CargoConnect";
         </div>
     </div>
 
-    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script type="importmap">
         {
           "imports": {
