@@ -8,7 +8,15 @@ $nav_items = [
     ['id' => 'settings',    'label' => 'Settings',    'icon' => 'fa-gear',            'href' => 'profile.php'],
 ];
 ?>
-<aside class="cc-sidebar">
+<!-- Sidebar overlay (mobile) -->
+<div class="cc-sidebar-overlay" id="sidebarOverlay"></div>
+
+<aside class="cc-sidebar" id="ccSidebar">
+    <!-- Mobile close button -->
+    <button class="cc-sidebar-close" id="sidebarClose" aria-label="Close sidebar">
+        <i class="fas fa-xmark"></i>
+    </button>
+
     <!-- Logo -->
     <div class="cc-sidebar-logo">
         <div class="cc-logo-icon">
