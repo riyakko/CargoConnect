@@ -56,7 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="cc-main">
     <div class="cc-topbar">
-        <span class="cc-topbar-title"><i class="fas fa-calculator text-blue me-2"></i>Rate Calculator</span>
+        <div style="display:flex;align-items:center;">
+            <button class="cc-menu-toggle" id="menuToggle" aria-label="Open sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="cc-topbar-title"><i class="fas fa-calculator text-blue me-2"></i>Rate Calculator</span>
+        </div>
         <div class="cc-topbar-actions"><div class="cc-avatar"><?php echo $user_initials; ?></div></div>
     </div>
 
