@@ -83,7 +83,12 @@ if ($conn) {
 
 <div class="cc-main">
     <div class="cc-topbar">
-        <span class="cc-topbar-title"><i class="fas fa-calendar-check text-blue me-2"></i>Bookings</span>
+        <div style="display:flex;align-items:center;">
+            <button class="cc-menu-toggle" id="menuToggle" aria-label="Open sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="cc-topbar-title"><i class="fas fa-calendar-check text-blue me-2"></i>Bookings</span>
+        </div>
         <div class="cc-topbar-actions"><div class="cc-avatar"><?php echo $user_initials; ?></div></div>
     </div>
 
@@ -106,7 +111,7 @@ if ($conn) {
 
         <!-- Booking Form -->
         <div class="cc-card mb-4">
-            <div class="cc-card-body" style="padding:32px;">
+            <div class="cc-card-body cc-book-card-body">
                 <form method="POST" action="book.php" id="bookingForm" autocomplete="off">
                     <input type="hidden" name="action" value="create">
                     <input type="hidden" id="origin_lat" name="origin_lat" value="">
@@ -114,9 +119,9 @@ if ($conn) {
                     <input type="hidden" id="dest_lat" name="dest_lat" value="">
                     <input type="hidden" id="dest_lng" name="dest_lng" value="">
 
-                    <div class="row g-4">
+                    <div class="row g-4 cc-book-form-row">
                         <!-- Route -->
-                        <div class="col-md-6">
+                        <div class="col-12 col-lg-6">
                             <h6 class="fw-bold mb-3" style="color:var(--cc-text-muted);text-transform:uppercase;font-size:0.72rem;letter-spacing:0.06em;">📍 Route Details</h6>
                             <div class="cc-form-group mb-3 position-relative">
                                 <label class="cc-form-label">Origin</label>
@@ -131,7 +136,7 @@ if ($conn) {
                         </div>
 
                         <!-- Cargo -->
-                        <div class="col-md-6">
+                        <div class="col-12 col-lg-6">
                             <h6 class="fw-bold mb-3" style="color:var(--cc-text-muted);text-transform:uppercase;font-size:0.72rem;letter-spacing:0.06em;">📦 Cargo Details</h6>
                             <div class="cc-form-group mb-3">
                                 <label class="cc-form-label">Cargo Type</label>
@@ -168,7 +173,7 @@ if ($conn) {
                         </div>
 
                         <!-- Shipping Method -->
-                        <div class="col-md-6">
+                        <div class="col-12 col-lg-6">
                             <h6 class="fw-bold mb-3" style="color:var(--cc-text-muted);text-transform:uppercase;font-size:0.72rem;letter-spacing:0.06em;">🚢 Shipping Method</h6>
                             <div class="cc-mode-group">
                                 <input type="radio" name="shipping_method" id="modeContainer" value="container" checked>
@@ -179,7 +184,7 @@ if ($conn) {
                         </div>
 
                         <!-- Live Cost Estimate -->
-                        <div class="col-md-6">
+                        <div class="col-12 col-lg-6">
                             <h6 class="fw-bold mb-3" style="color:var(--cc-text-muted);text-transform:uppercase;font-size:0.72rem;letter-spacing:0.06em;">💵 Cost Estimate</h6>
                             <div class="cc-calc-result" style="padding:20px 24px;min-height:90px;">
                                 <div class="cc-calc-result-label" style="font-size:0.78rem;">Estimated Total</div>
@@ -193,8 +198,8 @@ if ($conn) {
                         </div>
                     </div>
 
-                    <div class="text-center mt-4">
-                        <button type="submit" class="cc-btn cc-btn-primary" style="min-width:260px;padding:14px;">
+                    <div class="text-center mt-4 cc-book-submit-wrap">
+                        <button type="submit" class="cc-btn cc-btn-primary cc-book-submit">
                             <i class="fas fa-check"></i> CONFIRM BOOKING
                         </button>
                     </div>
@@ -208,6 +213,7 @@ if ($conn) {
                 <h5><i class="fas fa-list text-orange me-2"></i>Your Bookings</h5>
             </div>
             <div class="cc-card-body p-0">
+                <div class="cc-table-wrapper">
                 <table class="cc-table">
                     <thead>
                         <tr>
@@ -272,6 +278,7 @@ if ($conn) {
                         <?php endif; ?>
                     </tbody>
                 </table>
+                </div><!-- /.cc-table-wrapper -->
             </div>
         </div>
     </div>
@@ -309,7 +316,41 @@ if ($conn) {
 .cc-suggest-list li i { color: #9ca3af; font-size: 0.8rem; flex-shrink: 0; }
 
 /* Cargo size radio buttons */
-.cc-size-group { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+.cc-book-card-body {
+    padding: clamp(1rem, 2.4vw, 2rem);
+}
+.cc-book-form-row {
+    --bs-gutter-x: clamp(0.9rem, 2vw, 1.5rem);
+    --bs-gutter-y: clamp(0.9rem, 2vw, 1.5rem);
+}
+.cc-book-form-row > [class*="col-"] {
+    min-width: 0;
+}
+.cc-form-group,
+.cc-form-group .cc-form-control,
+.cc-form-group .cc-form-select,
+.cc-suggest-list,
+.cc-calc-result,
+.cc-mode-group,
+.cc-size-group,
+.cc-book-submit,
+.cc-book-submit-wrap {
+    width: 100%;
+    max-width: 100%;
+}
+.cc-form-group .cc-form-control,
+.cc-form-group .cc-form-select,
+.cc-calc-result,
+.cc-size-option span,
+.cc-mode-label,
+.cc-book-submit {
+    min-width: 0;
+}
+.cc-size-group {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
 .cc-size-option { display: block; cursor: pointer; }
 .cc-size-option input { display: none; }
 .cc-size-option span {
@@ -321,6 +362,8 @@ if ($conn) {
     font-size: 0.78rem;
     transition: all 0.18s;
     background: #fff;
+    height: 100%;
+    box-sizing: border-box;
 }
 .cc-size-option span strong { font-size: 0.85rem; color: #111827; }
 .cc-size-option span small { color: #9ca3af; font-size: 0.7rem; margin-top: 2px; }
@@ -329,6 +372,80 @@ if ($conn) {
     background: #fff7ed;
 }
 .cc-size-option input:checked + span strong { color: var(--cc-orange); }
+
+/* Submit button — desktop */
+.cc-book-submit {
+    min-width: min(260px, 100%);
+    padding: 14px 28px;
+    font-size: 0.95rem;
+    justify-content: center;
+}
+
+@media (max-width: 991.98px) {
+    .cc-size-group {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ── Mobile overrides ─────────────────────────────────────── */
+@media (max-width: 768px) {
+    .cc-book-card-body {
+        padding: 18px;
+    }
+
+    .cc-book-form-row {
+        --bs-gutter-x: 0;
+        --bs-gutter-y: 1rem;
+    }
+
+    /* Cargo size: 2×2 grid */
+    .cc-size-group { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+
+    /* Shipping method: stack buttons vertically */
+    .cc-mode-group {
+        flex-direction: column;
+        border-radius: 10px;
+    }
+    .cc-mode-label {
+        border-right: none;
+        border-bottom: 1px solid var(--cc-border);
+        border-radius: 0;
+        padding: 13px 16px;
+    }
+    .cc-mode-label:last-of-type { border-bottom: none; }
+
+    /* Cost estimate — prevent overflow */
+    .cc-calc-result {
+        padding: 16px !important;
+        word-break: break-word;
+    }
+    .cc-calc-result-value { font-size: 1.6rem !important; }
+    #costBreakdown { font-size: 0.72rem; word-break: break-word; }
+
+    /* Submit button — full width on mobile */
+    .cc-book-submit {
+        min-width: unset !important;
+        width: 100%;
+        padding: 14px;
+        font-size: 0.9rem;
+    }
+
+    /* Autocomplete dropdown — keep within viewport */
+    .cc-suggest-list { max-height: 160px; }
+}
+
+@media (max-width: 480px) {
+    .cc-book-card-body {
+        padding: 14px;
+    }
+    .cc-size-group { grid-template-columns: 1fr; gap: 6px; }
+    .cc-size-option span { padding: 10px 8px; }
+    .cc-size-option span strong { font-size: 0.78rem; }
+    .cc-size-option span small { font-size: 0.65rem; }
+    .cc-calc-result-value {
+        font-size: 1.35rem !important;
+    }
+}
 </style>
 
 <script>

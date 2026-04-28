@@ -150,6 +150,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 /* Top bar */
@@ -159,6 +160,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
     border-bottom: 1px solid var(--cc-border);
     position: sticky;
     top: 0;
@@ -173,6 +175,8 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
+    flex-wrap: wrap;
 }
 .cc-avatar {
     width: 38px;
@@ -194,6 +198,8 @@ body {
     flex: 1;
     padding: 28px 32px 40px;
     overflow-y: auto;
+    overflow-x: hidden;
+    min-width: 0;
 }
 
 /* ================================================================
@@ -206,6 +212,9 @@ body {
     border: 1px solid var(--cc-border);
     overflow: hidden;
     transition: transform var(--cc-transition), box-shadow var(--cc-transition);
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
 }
 .cc-card:hover {
     box-shadow: 0 8px 30px rgba(0,0,0,0.08);
@@ -224,6 +233,7 @@ body {
 }
 .cc-card-body {
     padding: 24px;
+    min-width: 0;
 }
 
 /* ================================================================
@@ -322,6 +332,9 @@ body {
     cursor: pointer;
     transition: all var(--cc-transition);
     text-decoration: none;
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
 }
 .cc-btn-primary {
     background: linear-gradient(135deg, var(--cc-blue), var(--cc-blue-light));
@@ -365,6 +378,8 @@ body {
 }
 .cc-form-control {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding: 10px 14px;
     border: 1px solid var(--cc-border);
     border-radius: 8px;
@@ -428,10 +443,13 @@ body {
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid var(--cc-border);
+    width: 100%;
+    max-width: 100%;
 }
 .cc-mode-group input[type="radio"] { display: none; }
 .cc-mode-label {
     flex: 1;
+    min-width: 0;
     text-align: center;
     padding: 12px 16px;
     cursor: pointer;
@@ -508,7 +526,6 @@ body {
 }
 
 /* Timeline */
-.cc-timeline {}
 .cc-timeline-item {
     display: flex;
     gap: 16px;
@@ -666,6 +683,65 @@ body {
 .cc-toast-error   { background: #dc2626; }
 
 /* ================================================================
+   HAMBURGER TOGGLE BUTTON
+   ================================================================ */
+.cc-menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--cc-text);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background var(--cc-transition);
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+.cc-menu-toggle:hover { background: var(--cc-bg); }
+
+/* Sidebar close button (mobile only) */
+.cc-sidebar-close {
+    display: none;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.7);
+    font-size: 1rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--cc-transition);
+    z-index: 10;
+}
+.cc-sidebar-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+/* Sidebar overlay backdrop */
+.cc-sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 99;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    animation: fadeInOverlay 0.2s ease;
+}
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+.cc-sidebar-overlay.active { display: block; }
+
+/* ================================================================
    RESPONSIVE
    ================================================================ */
 @media (max-width: 1024px) {
@@ -673,14 +749,100 @@ body {
     .cc-settings-grid { grid-template-columns: 1fr; }
     .cc-notif-panel { display: none; }
 }
+
 @media (max-width: 768px) {
+    /* Sidebar — hidden off-canvas by default */
     .cc-sidebar {
         transform: translateX(-100%);
-        transition: transform var(--cc-transition);
+        transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+        z-index: 200;
+        position: fixed;
     }
     .cc-sidebar.open { transform: translateX(0); }
+    .cc-sidebar-close { display: flex; }
+
+    /* Push sidebar logo right so close btn has room */
+    .cc-sidebar-logo { padding-right: 52px; }
+
+    /* Main area takes full width */
     .cc-main { margin-left: 0; }
-    .cc-form-grid { grid-template-columns: 1fr; }
-    .cc-page { padding: 20px 16px; }
-    .cc-topbar { padding: 12px 16px; }
+
+    /* Show hamburger button */
+    .cc-menu-toggle { display: flex; }
+
+    /* Topbar layout */
+    .cc-topbar {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+    }
+    .cc-topbar-title { font-size: 1rem; }
+    .cc-topbar > div:first-child {
+        min-width: 0;
+    }
+    .cc-topbar-actions {
+        width: auto;
+        margin-left: auto;
+        justify-content: flex-end;
+    }
+
+    /* Page padding */
+    .cc-page { padding: 16px 12px 32px; }
+
+    /* Form grids stack */
+    .cc-form-grid { grid-template-columns: 1fr; gap: 16px; }
+    .cc-input-row  { grid-template-columns: 1fr; }
+    .cc-settings-grid { grid-template-columns: 1fr; }
+
+    /* Dashboard flex layout must stack */
+    .cc-dashboard-layout {
+        flex-direction: column !important;
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Make tables horizontally scrollable */
+    .cc-card .cc-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Stat cards: min 2 per row on mobile */
+    .cc-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .cc-stat-value { font-size: 1.5rem; }
+
+    /* Track search: stack input group */
+    .cc-track-input-group {
+        flex-direction: column;
+        border-radius: var(--cc-radius);
+    }
+    .cc-track-input-group input {
+        border-radius: var(--cc-radius) var(--cc-radius) 0 0;
+    }
+    .cc-track-input-group button {
+        border-radius: 0 0 var(--cc-radius) var(--cc-radius);
+        width: 100%;
+    }
+
+    /* Booking confirm button */
+    .cc-btn-confirm { width: 100%; justify-content: center; }
+
+    /* Toast adjustments */
+    .cc-toast { right: 12px; left: 12px; top: 12px; transform: translateY(-200%); }
+    .cc-toast.show { transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+    .cc-stats-grid { grid-template-columns: 1fr; }
+    .cc-topbar-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .cc-topbar-actions .cc-btn-sm {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+    .cc-topbar-actions .cc-btn-sm span { display: none; } /* hide button text on tiny screens */
 }

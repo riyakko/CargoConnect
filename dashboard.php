@@ -33,9 +33,14 @@ if ($conn) {
 
 <div class="cc-main">
     <div class="cc-topbar">
-        <span class="cc-topbar-title"><i class="fas fa-gauge-high text-blue me-2"></i>Dashboard</span>
-        <div class="cc-topbar-actions">
-            <a href="book.php" class="cc-btn cc-btn-primary cc-btn-sm"><i class="fas fa-plus"></i> New Shipment</a>
+        <div style="display:flex;align-items:center;">
+            <button class="cc-menu-toggle" id="menuToggle" aria-label="Open sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="cc-topbar-title"><i class="fas fa-gauge-high text-blue me-2"></i>Dashboard</span>
+        </div>
+        <div class="cc-topbar-actions cc-dashboard-topbar-actions">
+            <a href="book.php" class="cc-btn cc-btn-primary cc-btn-sm cc-dashboard-topbar-btn"><i class="fas fa-plus"></i> <span class="cc-btn-text">New Shipment</span></a>
             <div class="cc-avatar"><?php echo $user_initials; ?></div>
         </div>
     </div>
@@ -44,8 +49,8 @@ if ($conn) {
         <h2 class="cc-page-title">Hello, <?php echo htmlspecialchars($current_user['first_name']); ?> <span class="wave">👋</span></h2>
         <p class="cc-page-subtitle">Here's your logistics overview for today.</p>
 
-        <div class="d-flex gap-4">
-            <div class="flex-grow-1">
+        <div class="d-flex gap-4 cc-dashboard-layout">
+            <div class="flex-grow-1 cc-dashboard-main-column">
                 <!-- Stats -->
                 <div class="cc-stats-grid mb-4">
                     <div class="cc-stat-card">
@@ -71,6 +76,7 @@ if ($conn) {
                         <h5><i class="fas fa-clock-rotate-left text-orange me-2"></i>Recent Shipment Activity</h5>
                     </div>
                     <div class="cc-card-body p-0">
+                        <div class="cc-table-wrapper">
                         <table class="cc-table">
                             <thead>
                                 <tr>
@@ -118,6 +124,7 @@ if ($conn) {
                                 <?php endif; ?>
                             </tbody>
                         </table>
+                        </div><!-- /.cc-table-wrapper -->
                     </div>
                 </div>
             </div>
@@ -146,6 +153,120 @@ if ($conn) {
         </div>
     </div>
 </div>
+
+<style>
+/* ── Dashboard mobile fixes ─────────────────────────────── */
+.cc-dashboard-layout,
+.cc-dashboard-main-column,
+.cc-stats-grid,
+.cc-stat-card,
+.cc-table-wrapper,
+.cc-table,
+.cc-dashboard-topbar-actions,
+.cc-dashboard-topbar-btn {
+    width: 100%;
+    max-width: 100%;
+}
+
+.cc-dashboard-layout > * {
+    min-width: 0;
+}
+
+/* Stat cards: 3 columns on ≥992px, 2 on tablet, 1 on phone */
+.cc-stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cc-stat-card {
+    min-height: 140px;
+    min-width: 0;
+}
+
+/* Table wrapper scroll */
+.cc-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0 0 12px 12px;
+}
+.cc-table {
+    min-width: 720px;
+}
+.cc-dashboard-topbar-actions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+.cc-dashboard-topbar-btn {
+    width: auto;
+    flex: 0 1 auto;
+}
+
+@media (max-width: 992px) {
+    .cc-dashboard-layout {
+        flex-direction: column;
+        gap: 1rem !important;
+    }
+    .cc-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 768px) {
+    /* Greeting */
+    .cc-page-title { font-size: 1.25rem; }
+    .cc-page-subtitle { font-size: 0.82rem; margin-bottom: 16px; }
+
+    /* Stat cards: 2 columns on phone */
+    .cc-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 16px !important;
+    }
+    .cc-stat-card { min-height: 110px; padding: 16px; }
+    .cc-stat-value { font-size: 1.75rem; }
+    .cc-stat-chart { height: 44px; }
+
+    /* Card header */
+    .cc-card-header { padding: 14px 16px; }
+    .cc-card-header h5 { font-size: 0.88rem; }
+
+    /* Table cells compact */
+    .cc-table thead th { padding: 10px 12px; font-size: 0.65rem; }
+    .cc-table tbody td { padding: 10px 12px; font-size: 0.82rem; }
+
+    .cc-topbar {
+        gap: 12px;
+    }
+    .cc-dashboard-topbar-actions {
+        width: auto;
+        gap: 8px;
+        flex: 0 1 auto;
+    }
+    .cc-dashboard-topbar-btn {
+        padding-inline: 12px;
+    }
+
+    /* Hide button label on medium screens to save topbar space */
+    .cc-btn-text { display: none; }
+}
+
+@media (max-width: 480px) {
+    /* Stat cards: 1 column on very small phones */
+    .cc-stats-grid { grid-template-columns: 1fr; }
+    .cc-stat-card { min-height: 100px; }
+    .cc-topbar {
+        align-items: flex-start;
+    }
+    .cc-dashboard-topbar-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .cc-dashboard-topbar-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-width: 0;
+    }
+    .cc-table {
+        min-width: 640px;
+    }
+}
+</style>
 
 <script>
 const sparkOpts = {
