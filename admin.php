@@ -79,29 +79,181 @@ if ($conn) {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
+:root{
+    --adm-blue:#1E3A8A;
+    --adm-blue-dark:#0f2560;
+    --adm-blue-light:#2563EB;
+    --adm-orange:#F97316;
+    --adm-orange-light:#FDBA74;
+    --adm-bg:#f1f5f9;
+    --adm-text:#111827;
+    --adm-text-muted:#6b7280;
+    --adm-border:#e5e7eb;
+    --adm-sidebar-w:260px;
+    --adm-radius:12px;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#f1f5f9;display:flex;min-height:100vh;}
+body{
+    font-family:'Inter',sans-serif;
+    background:var(--adm-bg);
+    display:flex;
+    min-height:100vh;
+    overflow-x:hidden;
+}
 
 /* Sidebar */
-.adm-sidebar{width:200px;background:#1e2d4a;min-height:100vh;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
-.adm-logo{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,0.08);}
-.adm-logo-text{font-size:1.05rem;font-weight:900;color:#fff;letter-spacing:-0.4px;}
-.adm-logo-text span{color:#fff;} .adm-logo-text b{color:#f97316;}
-.adm-logo-bars{display:flex;align-items:flex-end;gap:3px;margin-bottom:6px;}
-.adm-logo-bars div{background:#f97316;border-radius:2px;}
-.adm-nav{padding:12px 0;flex:1;}
-.adm-nav a{display:flex;align-items:center;gap:11px;padding:12px 18px;color:rgba(255,255,255,0.55);font-size:0.88rem;font-weight:600;text-decoration:none;border-left:3px solid transparent;transition:all 0.2s;}
-.adm-nav a:hover{color:#fff;background:rgba(255,255,255,0.06);border-left-color:#f97316;}
-.adm-nav a.active{color:#fff;background:rgba(255,255,255,0.1);border-left-color:#f97316;}
-.adm-nav a i{width:16px;text-align:center;}
-.adm-nav .adm-logout{color:rgba(255,100,100,0.65);margin-top:auto;}
+.adm-sidebar-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.45);
+    backdrop-filter:blur(2px);
+    -webkit-backdrop-filter:blur(2px);
+    z-index:99;
+}
+.adm-sidebar-overlay.active{display:block;}
+.adm-sidebar{
+    width:var(--adm-sidebar-w);
+    min-height:100vh;
+    background:linear-gradient(180deg,var(--adm-blue) 0%, var(--adm-blue-dark) 100%);
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    position:fixed;
+    top:0;
+    left:0;
+    height:100vh;
+    z-index:100;
+    overflow-y:auto;
+    scrollbar-width:none;
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.adm-sidebar::-webkit-scrollbar{display:none;}
+.adm-sidebar-close{
+    display:none;
+    position:absolute;
+    top:16px;
+    right:16px;
+    width:32px;
+    height:32px;
+    border:none;
+    border-radius:6px;
+    background:rgba(255,255,255,0.1);
+    color:rgba(255,255,255,0.7);
+    cursor:pointer;
+    align-items:center;
+    justify-content:center;
+    z-index:5;
+}
+.adm-sidebar-close:hover{background:rgba(255,255,255,0.2);color:#fff;}
+.adm-logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:28px 24px 36px;
+}
+.adm-logo-text{font-size:1.35rem;font-weight:800;color:#fff;letter-spacing:-0.4px;line-height:1;}
+.adm-logo-text span{color:#fff;}
+.adm-logo-text b{color:var(--adm-orange);font-weight:300;}
+.adm-logo-bars{display:flex;gap:3px;flex-shrink:0;align-items:center;margin-bottom:0;}
+.adm-logo-bars div{background:var(--adm-orange);border-radius:2px;}
+.adm-logo-bars div:last-child{background:var(--adm-orange-light);}
+.adm-nav{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding:0 12px;
+}
+.adm-nav a,
+.adm-sidebar-footer a{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:13px 16px;
+    color:rgba(255,255,255,0.6);
+    font-size:0.9rem;
+    font-weight:500;
+    text-decoration:none;
+    border-radius:8px;
+    transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+.adm-nav a:hover,
+.adm-sidebar-footer a:hover{
+    color:#fff;
+    background:rgba(255,255,255,0.08);
+}
+.adm-nav a.active,
+.adm-sidebar-footer a.active{
+    color:#fff;
+    background:rgba(255,255,255,0.12);
+    box-shadow:inset 3px 0 0 var(--adm-orange);
+    font-weight:600;
+}
+.adm-nav a i,
+.adm-sidebar-footer a i{
+    width:20px;
+    text-align:center;
+    flex-shrink:0;
+}
+.adm-sidebar-footer{
+    padding:12px;
+    margin-top:auto;
+    border-top:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+.adm-logout{color:rgba(255,255,255,0.65)!important;}
+.adm-logout:hover{color:#fca5a5!important;background:rgba(239,68,68,0.12)!important;}
 
 /* Main */
-.adm-main{margin-left:200px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
-.adm-topbar{height:60px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50;}
-.adm-topbar h5{font-size:1.2rem;font-weight:800;color:#111827;margin:0;}
-.adm-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;}
-.adm-content{padding:28px;}
+.adm-main{
+    margin-left:var(--adm-sidebar-w);
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+    min-width:0;
+}
+.adm-topbar{
+    min-height:64px;
+    background:#fff;
+    border-bottom:1px solid var(--adm-border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:12px 28px;
+    position:sticky;
+    top:0;
+    z-index:50;
+}
+.adm-topbar h5{font-size:1.2rem;font-weight:800;color:var(--adm-text);margin:0;}
+.adm-topbar-left,
+.adm-topbar-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
+}
+.adm-menu-toggle{
+    display:none;
+    align-items:center;
+    justify-content:center;
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:8px;
+    background:transparent;
+    color:var(--adm-text);
+    font-size:1.2rem;
+    cursor:pointer;
+    flex-shrink:0;
+}
+.adm-menu-toggle:hover{background:#f3f4f6;}
+.adm-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--adm-blue-light),var(--adm-orange));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+.adm-content{padding:28px;min-width:0;}
 
 /* Cards */
 .adm-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,0.05);margin-bottom:24px;overflow:hidden;}
@@ -109,7 +261,12 @@ body{font-family:'Inter',sans-serif;background:#f1f5f9;display:flex;min-height:1
 .adm-card-hdr h5{font-size:1rem;font-weight:800;margin:0;color:#111827;}
 
 /* Table */
-.adm-table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+.adm-table-wrap{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+}
+.adm-table{width:100%;border-collapse:collapse;font-size:0.85rem;min-width:760px;}
 .adm-table th{padding:12px 16px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:#9ca3af;font-weight:700;background:#f9fafb;border-bottom:1px solid #f3f4f6;}
 .adm-table td{padding:13px 16px;border-bottom:1px solid #f9fafb;color:#374151;vertical-align:middle;text-align:center;}
 .adm-table th{text-align:center;}
@@ -134,9 +291,9 @@ body{font-family:'Inter',sans-serif;background:#f1f5f9;display:flex;min-height:1
 .btn-add:hover{background:#ea580c;}
 
 /* Search bar */
-.adm-toolbar{display:flex;gap:10px;align-items:center;}
+.adm-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .adm-search{display:flex;align-items:center;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 12px;gap:8px;background:#fff;}
-.adm-search input{border:none;outline:none;font-size:0.85rem;font-family:'Inter',sans-serif;width:180px;color:#111827;}
+.adm-search input{border:none;outline:none;font-size:0.85rem;font-family:'Inter',sans-serif;width:180px;max-width:100%;color:#111827;}
 .adm-search i{color:#9ca3af;font-size:0.8rem;}
 .adm-filter{border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:0.85rem;font-family:'Inter',sans-serif;color:#374151;background:#fff;cursor:pointer;outline:none;}
 
@@ -153,12 +310,75 @@ body{font-family:'Inter',sans-serif;background:#f1f5f9;display:flex;min-height:1
 
 /* Chart container */
 .chart-wrap{padding:24px;position:relative;height:280px;}
+
+/* Responsive */
+@media (max-width: 991.98px){
+    .adm-card-hdr{flex-wrap:wrap;gap:12px;}
+}
+
+@media (max-width: 768px){
+    .adm-sidebar{
+        transform:translateX(-100%);
+        z-index:200;
+    }
+    .adm-sidebar.open{transform:translateX(0);}
+    .adm-sidebar-close{display:flex;}
+    .adm-logo{padding-right:52px;}
+    .adm-main{margin-left:0;}
+    .adm-menu-toggle{display:flex;}
+    .adm-topbar{
+        padding:12px 16px;
+        flex-wrap:wrap;
+    }
+    .adm-content{padding:16px 12px 32px;}
+    .adm-card-hdr{padding:16px;}
+    .adm-card-hdr h5{font-size:0.95rem;}
+    .adm-toolbar,
+    .adm-toolbar form{
+        width:100%;
+    }
+    .adm-toolbar form{
+        display:flex;
+        flex-wrap:wrap;
+    }
+    .adm-search{
+        flex:1 1 220px;
+        width:100%;
+    }
+    .adm-search input{
+        width:100%;
+    }
+    .adm-filter,
+    .btn-add{
+        width:100%;
+    }
+}
+
+@media (max-width: 480px){
+    .adm-topbar h5{font-size:1rem;}
+    .adm-topbar-right{
+        width:100%;
+        justify-content:space-between;
+    }
+    .modal-box{padding:20px;}
+    .modal-footer{
+        flex-direction:column;
+    }
+    .modal-footer button{
+        width:100%;
+    }
+}
 </style>
 </head>
 <body>
 
+<div class="adm-sidebar-overlay" id="admSidebarOverlay"></div>
+
 <!-- Sidebar -->
 <aside class="adm-sidebar">
+    <button class="adm-sidebar-close" id="admSidebarClose" aria-label="Close sidebar">
+        <i class="fas fa-xmark"></i>
+    </button>
     <div class="adm-logo">
         <div class="adm-logo-bars">
             <div style="width:8px;height:12px;"></div>
@@ -170,16 +390,23 @@ body{font-family:'Inter',sans-serif;background:#f1f5f9;display:flex;min-height:1
     <nav class="adm-nav">
         <a href="admin.php?tab=users" class="<?php echo $tab==='users'?'active':''; ?>"><i class="fas fa-user"></i> User Management</a>
         <a href="admin.php?tab=bookings" class="<?php echo $tab==='bookings'?'active':''; ?>"><i class="fas fa-calendar-check"></i> Bookings</a>
-        <a href="dashboard.php" style="margin-top:12px;"><i class="fas fa-gauge-high"></i> Dashboard</a>
-        <a href="auth.php?action=logout" class="adm-logout" style="position:absolute;bottom:20px;left:0;width:100%;"><i class="fas fa-right-from-bracket"></i> Logout</a>
     </nav>
+    <div class="adm-sidebar-footer">
+        <a href="dashboard.php"><i class="fas fa-gauge-high"></i> Dashboard</a>
+        <a href="auth.php?action=logout" class="adm-logout"><i class="fas fa-right-from-bracket"></i> Logout</a>
+    </div>
 </aside>
 
 <!-- Main -->
 <div class="adm-main">
     <div class="adm-topbar">
-        <h5><?php echo $tab==='users'?'User Management':'Booking Management'; ?></h5>
-        <div style="display:flex;align-items:center;gap:12px;">
+        <div class="adm-topbar-left">
+            <button class="adm-menu-toggle" id="admMenuToggle" aria-label="Open sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h5><?php echo $tab==='users'?'User Management':'Booking Management'; ?></h5>
+        </div>
+        <div class="adm-topbar-right">
             <span style="font-size:0.82rem;font-weight:700;color:#6b7280;">ADMIN</span>
             <div class="adm-avatar"><?php echo $initials; ?></div>
         </div>
@@ -209,6 +436,7 @@ body{font-family:'Inter',sans-serif;background:#f1f5f9;display:flex;min-height:1
                 <button class="btn-add" onclick="document.getElementById('addModal').classList.add('open')"><i class="fas fa-plus me-1"></i>ADD NEW USER</button>
             </div>
         </div>
+        <div class="adm-table-wrap">
         <table class="adm-table">
             <thead><tr><th>User ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
@@ -240,6 +468,7 @@ body{font-family:'Inter',sans-serif;background:#f1f5f9;display:flex;min-height:1
                 <?php endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 
     <?php else: ?>
@@ -255,6 +484,7 @@ body{font-family:'Inter',sans-serif;background:#f1f5f9;display:flex;min-height:1
     <!-- Bookings Table -->
     <div class="adm-card">
         <div class="adm-card-hdr"><h5>Recent Shipment Activity</h5></div>
+        <div class="adm-table-wrap">
         <table class="adm-table">
             <thead><tr><th>User ID</th><th>First Name</th><th>Last Name</th><th>Route</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
@@ -300,6 +530,7 @@ body{font-family:'Inter',sans-serif;background:#f1f5f9;display:flex;min-height:1
                 <?php endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
     <?php endif; ?>
 
@@ -366,6 +597,47 @@ function openEdit(uid, name, role) {
 document.querySelectorAll('.modal-backdrop-custom').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
 });
+
+(function () {
+    const sidebar = document.querySelector('.adm-sidebar');
+    const overlay = document.getElementById('admSidebarOverlay');
+    const toggle = document.getElementById('admMenuToggle');
+    const closeBtn = document.getElementById('admSidebarClose');
+
+    if (!sidebar) return;
+
+    function openSidebar() {
+        sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (toggle) toggle.addEventListener('click', openSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+
+    sidebar.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) closeSidebar();
+        });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeSidebar();
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            closeSidebar();
+        }
+    });
+})();
 
 // Chart
 <?php if($tab==='bookings'): ?>
