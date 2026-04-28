@@ -69,21 +69,21 @@
         <h4 class="fw-bold mb-4">WHAT WE OFFER?</h4>
         <div class="row g-4">
             <!-- Card 1 -->
-            <div class="col-md-4 d-flex">
+            <div class="col-12 col-md-4 d-flex">
                 <div class="card text-white border-0 p-4 rounded-3 flex-fill text-start w-100" style="background-color: #294084; box-shadow: 0 10px 20px rgba(41, 64, 132, 0.2);">
                     <h6 class="fw-bold mb-3">JOHN CENA</h6>
                     <p class="mb-0" style="font-size: 0.85rem; line-height: 1.6;">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
                 </div>
             </div>
             <!-- Card 2 -->
-            <div class="col-md-4 d-flex">
+            <div class="col-12 col-md-4 d-flex">
                 <div class="card text-white border-0 p-4 rounded-3 flex-fill text-start w-100" style="background: linear-gradient(135deg, #3B82F6, #2563EB); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);">
                     <h6 class="fw-bold mb-3">67</h6>
                     <p class="mb-0" style="font-size: 0.85rem; line-height: 1.6;">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
                 </div>
             </div>
             <!-- Card 3 -->
-            <div class="col-md-4 d-flex">
+            <div class="col-12 col-md-4 d-flex">
                 <div class="card text-white border-0 p-4 rounded-3 flex-fill text-start w-100" style="background-color: #F97316; box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);">
                     <h6 class="fw-bold mb-3">AKOTOSINATOY</h6>
                     <p class="mb-0" style="font-size: 0.85rem; line-height: 1.6;">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
