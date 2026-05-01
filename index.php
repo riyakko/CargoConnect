@@ -69,24 +69,24 @@
         <h4 class="fw-bold mb-4">WHAT WE OFFER?</h4>
         <div class="row g-4">
             <!-- Card 1 -->
-            <div class="col-12 col-md-4 d-flex">
+            <div class="col-md-4 d-flex">
                 <div class="card text-white border-0 p-4 rounded-3 flex-fill text-start w-100" style="background-color: #294084; box-shadow: 0 10px 20px rgba(41, 64, 132, 0.2);">
-                    <h6 class="fw-bold mb-3">JOHN CENA</h6>
-                    <p class="mb-0" style="font-size: 0.85rem; line-height: 1.6;">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <h6 class="fw-bold mb-3">Shipment Booking</h6>
+                    <p class="mb-0" style="font-size: 0.85rem; line-height: 1.6;">Send packages faster with a simple and convenient booking process. Manage delivery details, schedule shipments, and handle multiple cargo requests in one seamless platform.</p>
                 </div>
             </div>
             <!-- Card 2 -->
-            <div class="col-12 col-md-4 d-flex">
+            <div class="col-md-4 d-flex">
                 <div class="card text-white border-0 p-4 rounded-3 flex-fill text-start w-100" style="background: linear-gradient(135deg, #3B82F6, #2563EB); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);">
-                    <h6 class="fw-bold mb-3">67</h6>
-                    <p class="mb-0" style="font-size: 0.85rem; line-height: 1.6;">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <h6 class="fw-bold mb-3">Live Tracking</h6>
+                    <p class="mb-0" style="font-size: 0.85rem; line-height: 1.6;">Stay updated with your shipments anytime, anywhere through accurate real-time cargo tracking. Know exactly where your package is and enjoy a more reliable and stress-free delivery experience.</p>
                 </div>
             </div>
             <!-- Card 3 -->
-            <div class="col-12 col-md-4 d-flex">
+            <div class="col-md-4 d-flex">
                 <div class="card text-white border-0 p-4 rounded-3 flex-fill text-start w-100" style="background-color: #F97316; box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);">
-                    <h6 class="fw-bold mb-3">AKOTOSINATOY</h6>
-                    <p class="mb-0" style="font-size: 0.85rem; line-height: 1.6;">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <h6 class="fw-bold mb-3">Admin Control</h6>
+                    <p class="mb-0" style="font-size: 0.85rem; line-height: 1.6;">Experience smooth and organized cargo operations with centralized monitoring and instant delivery updates. Our system helps ensure faster service, better coordination, and improved customer satisfaction.</p>
                 </div>
             </div>
         </div>

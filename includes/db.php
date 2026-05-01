@@ -8,9 +8,9 @@
  * Update credentials from your AwardSpace Control Panel → Database Manager.
  */
 
-$db_host = 'fdb1033.awardspace.net';
-$db_user = '4746260_cargoconnecct';
-$db_pass = 'cargoconnect2026';                      
+$db_host = 'localhost';
+$db_user = 'root';
+$db_pass = '';                      
 $db_name = '4746260_cargoconnecct';
 
 $conn = null;

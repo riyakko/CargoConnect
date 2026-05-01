@@ -189,7 +189,7 @@ if ($conn) {
                             <div class="cc-calc-result" style="padding:20px 24px;min-height:90px;">
                                 <div class="cc-calc-result-label" style="font-size:0.78rem;">Estimated Total</div>
                                 <div class="cc-calc-result-value" id="costDisplay" style="font-size:2rem;">
-                                    $ <span id="costWhole">—</span>
+                                    <span id="costWhole">$—</span>
                                 </div>
                                 <small id="costBreakdown" style="color:var(--cc-text-muted);font-size:0.78rem;">Select origin &amp; destination to calculate.</small>
                             </div>
