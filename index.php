@@ -29,9 +29,9 @@
                 <div id="canvas-container" class="w-100 h-100 position-relative z-1" style="cursor: grab;">
                     <!-- Three.js Canvas goes here -->
                 </div>
-            </div>
                 </div>
             </div>
+        </div>
         </div>
     </main>
 
