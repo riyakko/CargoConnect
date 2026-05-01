@@ -199,11 +199,80 @@ if ($conn) {
                     </div>
 
                     <div class="text-center mt-4 cc-book-submit-wrap">
-                        <button type="submit" class="cc-btn cc-btn-primary cc-book-submit">
-                            <i class="fas fa-check"></i> CONFIRM BOOKING
+                        <button type="button" class="cc-btn cc-btn-primary cc-book-submit" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                            <i class="fas fa-credit-card"></i> PROCEED TO PAYMENT
                         </button>
                     </div>
                 </form>
+
+                <!-- Payment Modal -->
+                <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="modal-title fw-bold text-dark" id="paymentModalLabel">Payment Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <!-- Payment Method Choices -->
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small fw-bold">Payment Method</label>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <input type="radio" class="btn-check" name="payment_method" id="payVisa" autocomplete="off" checked form="bookingForm">
+                                            <label class="btn btn-outline-primary w-100 p-2" for="payVisa" style="border-radius: 8px;">
+                                                <i class="fab fa-cc-visa fa-2x mb-1"></i><br><span style="font-size: 0.75rem; font-weight: 600;">Visa</span>
+                                            </label>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="radio" class="btn-check" name="payment_method" id="payMaster" autocomplete="off" form="bookingForm">
+                                            <label class="btn btn-outline-danger w-100 p-2" for="payMaster" style="border-radius: 8px;">
+                                                <i class="fab fa-cc-mastercard fa-2x mb-1"></i><br><span style="font-size: 0.75rem; font-weight: 600;">Mastercard</span>
+                                            </label>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="radio" class="btn-check" name="payment_method" id="payPaypal" autocomplete="off" form="bookingForm">
+                                            <label class="btn btn-outline-info w-100 p-2" for="payPaypal" style="border-radius: 8px;">
+                                                <i class="fab fa-cc-paypal fa-2x mb-1"></i><br><span style="font-size: 0.75rem; font-weight: 600;">PayPal</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small fw-bold">Cardholder Name</label>
+                                    <input type="text" class="form-control" placeholder="Juan Dela Cruz" required form="bookingForm">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small fw-bold">Card Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="fas fa-credit-card text-muted"></i></span>
+                                        <input type="text" class="form-control" placeholder="0000 0000 0000 0000" required form="bookingForm">
+                                    </div>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-bold">Expiry Date</label>
+                                        <input type="text" class="form-control" placeholder="MM/YY" required form="bookingForm">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-bold">CVV</label>
+                                        <input type="password" class="form-control" placeholder="123" required form="bookingForm">
+                                    </div>
+                                </div>
+                                <div class="mt-4 p-3 bg-light rounded text-center">
+                                    <p class="mb-0 text-muted small">Amount to Pay:</p>
+                                    <h4 class="fw-bold mb-0 text-dark" id="modalAmountDisplay">$0.00</h4>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 pt-0 justify-content-center pb-4">
+                                <button type="submit" form="bookingForm" class="cc-btn cc-btn-primary w-100 mx-3" style="padding: 12px;">
+                                    <i class="fas fa-lock me-2"></i> Pay Now & Confirm Booking
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -577,6 +646,12 @@ function updateSizeLabels(method) {
 document.querySelectorAll('input[name="shipping_method"]').forEach(r => r.addEventListener('change', recalculate));
 // Init labels on load
 document.addEventListener('DOMContentLoaded', () => updateSizeLabels('container'));
+
+// Copy total amount to Modal when opened
+document.getElementById('paymentModal').addEventListener('show.bs.modal', function () {
+    const total = document.getElementById('costWhole').textContent;
+    document.getElementById('modalAmountDisplay').textContent = total;
+});
 </script>
 
 <?php include 'includes/app_foot.php'; ?>
