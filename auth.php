@@ -123,14 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         <!-- Left Panel -->
         <div class="left-panel d-none d-md-flex">
             <div class="logo-container">
-                <div class="d-flex align-items-end me-2" style="gap: 3px;">
-                    <div style="width: 10px; height: 14px; background-color: #F97316; border-radius: 2px;"></div>
-                    <div style="width: 12px; height: 20px; background-color: #F97316; border-radius: 2px;"></div>
-                    <div style="width: 8px; height: 14px; background-color: #F97316; border-radius: 2px;"></div>
-                </div>
-                <h3 class="mb-0 fw-bolder" style="letter-spacing: -1px; font-size: 1.8rem;">
-                    <span style="color: #1e3a8a;">Cargo</span><span class="text-orange">Connect.</span>
-                </h3>
+                <img src="cargo-logo.png" alt="CargoConnect Logo" style="height: 45px; width: auto;">
             </div>
             
             <div class="content-container text-center">
