@@ -2,47 +2,59 @@
 /**
  * CargoConnect — Logo Partial
  *
- * Drop your custom logo image into the project root as:
- *   logo.png  (or logo.jpg / logo.svg)
+ * Place your logo images in the project root:
+ *   logo.png         — main logo (dark text, for light backgrounds: navbar/header/login)
+ *   logo_sidebar.png — sidebar logo (light/white text, for dark backgrounds: sidebar/admin)
  *
- * This partial automatically detects it and uses it.
- * If no image is found, falls back to the default text logo.
+ * Supported extensions: .png, .jpg, .jpeg, .svg, .webp
  *
  * Usage:
- *   <?php include 'includes/logo.php'; ?>   (from root pages)
- *   <?php include __DIR__ . '/logo.php'; ?> (from includes/ itself)
+ *   <?php include __DIR__ . '/logo.php'; ?>                          — main logo (default)
+ *   <?php $logo_variant = 'sidebar'; include __DIR__ . '/logo.php'; ?> — sidebar logo
  *
- * Params (optional, set before including):
- *   $logo_class  — extra CSS class on the wrapper  (default: '')
- *   $logo_height — img max-height in px            (default: 44)
+ * Optional params (set before including):
+ *   $logo_variant — 'main' (default) or 'sidebar'
+ *   $logo_height  — max-height in px (default: 44)
+ *   $logo_class   — extra CSS class on wrapper
  */
 
-$logo_height  = $logo_height ?? 44;
-$logo_class   = $logo_class  ?? '';
+$logo_height  = $logo_height  ?? 44;
+$logo_class   = $logo_class   ?? '';
+$logo_variant = $logo_variant ?? 'main';
 
-// Detect image from root — works whether called from root or includes/
-$root = rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . '/' . trim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-$root = rtrim($root, '/\\');
+// Resolve project root (works from both root pages and includes/ subdirectory)
+$project_root = rtrim(dirname(dirname(__FILE__)), '/\\'); // goes up from includes/ to root
 
-// Check for the closest project root by looking for auth.php as a landmark
-$search_root = dirname(__FILE__); // starts at includes/
-// Walk up one level to project root
-$project_root = dirname($search_root);
+// Determine which file to look for
+$logo_exts    = ['png', 'jpg', 'jpeg', 'svg', 'webp'];
+$prefix       = ($logo_variant === 'sidebar') ? 'logo_sidebar' : 'logo';
 
-$logo_file   = null;
-$logo_exts   = ['png', 'jpg', 'jpeg', 'svg', 'webp'];
+$logo_file = null;
 foreach ($logo_exts as $ext) {
-    if (file_exists($project_root . '/logo.' . $ext)) {
-        $logo_file = 'logo.' . $ext;
+    if (file_exists($project_root . '/' . $prefix . '.' . $ext)) {
+        $logo_file = $prefix . '.' . $ext;
         break;
     }
 }
+
+// Fallback: if sidebar logo not found, try main logo
+if (!$logo_file && $logo_variant === 'sidebar') {
+    foreach ($logo_exts as $ext) {
+        if (file_exists($project_root . '/logo.' . $ext)) {
+            $logo_file = 'logo.' . $ext;
+            break;
+        }
+    }
+}
+
+// Reset variants for next call
+$logo_variant = 'main';
 ?>
 
 <?php if ($logo_file): ?>
     <div class="cc-logo-wrapper <?php echo htmlspecialchars($logo_class); ?>" style="display:flex;align-items:center;">
         <img src="<?php echo htmlspecialchars($logo_file); ?>"
-             alt="CargoConnect Logo"
+             alt="CargoConnect"
              style="max-height:<?php echo (int)$logo_height; ?>px; width:auto; object-fit:contain; display:block;">
     </div>
 <?php else: ?>
@@ -56,3 +68,8 @@ foreach ($logo_exts as $ext) {
         </span>
     </div>
 <?php endif; ?>
+<?php
+// Reset for next call
+$logo_height = 44;
+$logo_class  = '';
+?>

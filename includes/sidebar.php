@@ -19,7 +19,7 @@ $nav_items = [
 
     <!-- Logo -->
     <div class="cc-sidebar-logo">
-        <?php $logo_height = 36; include __DIR__ . '/logo.php'; ?>
+        <?php $logo_height = 36; $logo_variant = 'sidebar'; include __DIR__ . '/logo.php'; ?>
     </div>
 
     <!-- Navigation -->

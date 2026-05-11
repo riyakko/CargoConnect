@@ -21,12 +21,8 @@
     <nav class="navbar navbar-expand-lg bg-white px-4 py-3 border-bottom shadow-sm">
         <div class="container container-fluid">
             <!-- Logo -->
-            <a class="navbar-brand d-flex align-items-center" href="index.php" style="font-family: 'Inter', sans-serif;">
-                <div class="d-flex me-2">
-                    <div style="background-color: #F97316; width: 14px; height: 18px; border-radius: 1px;"></div>
-                    <div style="background-color: #FBD38D; width: 6px; height: 18px; margin-left: 2px; border-radius: 1px;"></div>
-                </div>
-                <span style="color: #1E3A8A; font-weight: 800; font-size: 1.4rem;">Cargo</span><span style="color: #F97316; font-weight: 300; font-size: 1.4rem;">Connect.</span>
+            <a class="navbar-brand d-flex align-items-center" href="index.php">
+                <?php $logo_height = 42; include __DIR__ . '/logo.php'; ?>
             </a>
 
             <!-- Mobile Toggle -->
