@@ -58,24 +58,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 
     if ($_POST['action'] === 'delete' && $conn && isset($_POST['booking_id'])) {
-        $stmt = $conn->prepare("DELETE FROM bookings WHERE booking_id = ?");
-        $stmt->bind_param('i', $_POST['booking_id']);
+        // Customers can only delete their OWN bookings
+        if ($user_role === 'admin') {
+            $stmt = $conn->prepare("DELETE FROM bookings WHERE booking_id = ?");
+            $stmt->bind_param('i', $_POST['booking_id']);
+        } else {
+            $stmt = $conn->prepare("DELETE FROM bookings WHERE booking_id = ? AND user_id = ?");
+            $stmt->bind_param('ii', $_POST['booking_id'], $user_id);
+        }
         $stmt->execute();
         $stmt->close();
         $success_msg = "Booking deleted.";
     }
 }
 
-// Fetch bookings
+// Fetch bookings — customers see only their own, admins see all
 $bookings = [];
 if ($conn) {
-    $r = $conn->query(
-        "SELECT b.*, s.tracking_id, s.status as shipment_status
-         FROM bookings b
-         LEFT JOIN shipments s ON b.shipment_id = s.shipment_id
-         ORDER BY b.date_requested DESC LIMIT 20"
-    );
-    if ($r) { while ($row = $r->fetch_assoc()) $bookings[] = $row; }
+    if ($user_role === 'admin') {
+        $r = $conn->query(
+            "SELECT b.*, s.tracking_id, s.status as shipment_status
+             FROM bookings b
+             LEFT JOIN shipments s ON b.shipment_id = s.shipment_id
+             ORDER BY b.date_requested DESC LIMIT 20"
+        );
+        if ($r) { while ($row = $r->fetch_assoc()) $bookings[] = $row; }
+    } else {
+        $stmt = $conn->prepare(
+            "SELECT b.*, s.tracking_id, s.status as shipment_status
+             FROM bookings b
+             LEFT JOIN shipments s ON b.shipment_id = s.shipment_id
+             WHERE b.user_id = ?
+             ORDER BY b.date_requested DESC LIMIT 20"
+        );
+        $stmt->bind_param('i', $user_id);
+        $stmt->execute();
+        $r = $stmt->get_result();
+        while ($row = $r->fetch_assoc()) $bookings[] = $row;
+        $stmt->close();
+    }
 }
 ?>
 <?php include 'includes/app_head.php'; ?>
