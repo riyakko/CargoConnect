@@ -3,29 +3,64 @@ require_once 'includes/auth_check.php';
 $page_title = 'Dashboard';
 $active_page = 'dashboard';
 
-// Fetch summary counts from shipments table
+// Fetch summary counts — scoped by role
+// Admins see all shipments; customers see only their own
 $total_active = 0; $total_pending = 0; $total_delivered = 0;
 $recent = [];
 
 if ($conn) {
-    $r = $conn->query("SELECT COUNT(*) as c FROM shipments WHERE status='In Transit'");
-    if ($r) $total_active = $r->fetch_assoc()['c'];
+    if ($user_role === 'admin') {
+        // Admin: global counts
+        $r = $conn->query("SELECT COUNT(*) as c FROM shipments WHERE status='In Transit'");
+        if ($r) $total_active = $r->fetch_assoc()['c'];
 
-    $r = $conn->query("SELECT COUNT(*) as c FROM shipments WHERE status='Pending'");
-    if ($r) $total_pending = $r->fetch_assoc()['c'];
+        $r = $conn->query("SELECT COUNT(*) as c FROM shipments WHERE status='Pending'");
+        if ($r) $total_pending = $r->fetch_assoc()['c'];
 
-    $r = $conn->query("SELECT COUNT(*) as c FROM shipments WHERE status IN ('Arrived','Completed')");
-    if ($r) $total_delivered = $r->fetch_assoc()['c'];
+        $r = $conn->query("SELECT COUNT(*) as c FROM shipments WHERE status IN ('Arrived','Completed')");
+        if ($r) $total_delivered = $r->fetch_assoc()['c'];
 
-    $r = $conn->query("SELECT * FROM shipments ORDER BY date_created DESC LIMIT 5");
-    if ($r) { while ($row = $r->fetch_assoc()) $recent[] = $row; }
+        $r = $conn->query("SELECT * FROM shipments ORDER BY date_created DESC LIMIT 5");
+        if ($r) { while ($row = $r->fetch_assoc()) $recent[] = $row; }
+
+    } else {
+        // Customer: only their own shipments
+        $stmt = $conn->prepare("SELECT COUNT(*) as c FROM shipments WHERE user_id = ? AND status='In Transit'");
+        $stmt->bind_param('i', $user_id); $stmt->execute();
+        $total_active = $stmt->get_result()->fetch_assoc()['c'];
+        $stmt->close();
+
+        $stmt = $conn->prepare("SELECT COUNT(*) as c FROM shipments WHERE user_id = ? AND status='Pending'");
+        $stmt->bind_param('i', $user_id); $stmt->execute();
+        $total_pending = $stmt->get_result()->fetch_assoc()['c'];
+        $stmt->close();
+
+        $stmt = $conn->prepare("SELECT COUNT(*) as c FROM shipments WHERE user_id = ? AND status IN ('Arrived','Completed')");
+        $stmt->bind_param('i', $user_id); $stmt->execute();
+        $total_delivered = $stmt->get_result()->fetch_assoc()['c'];
+        $stmt->close();
+
+        $stmt = $conn->prepare("SELECT * FROM shipments WHERE user_id = ? ORDER BY date_created DESC LIMIT 5");
+        $stmt->bind_param('i', $user_id); $stmt->execute();
+        $r = $stmt->get_result();
+        while ($row = $r->fetch_assoc()) $recent[] = $row;
+        $stmt->close();
+    }
 }
 
-// Fetch notifications
+// Fetch notifications — customers only see their own
 $notifications = [];
 if ($conn) {
-    $r = $conn->query("SELECT * FROM notifications ORDER BY date_sent DESC LIMIT 5");
-    if ($r) { while ($row = $r->fetch_assoc()) $notifications[] = $row; }
+    if ($user_role === 'admin') {
+        $r = $conn->query("SELECT * FROM notifications ORDER BY date_sent DESC LIMIT 5");
+        if ($r) { while ($row = $r->fetch_assoc()) $notifications[] = $row; }
+    } else {
+        $stmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY date_sent DESC LIMIT 5");
+        $stmt->bind_param('i', $user_id); $stmt->execute();
+        $r = $stmt->get_result();
+        while ($row = $r->fetch_assoc()) $notifications[] = $row;
+        $stmt->close();
+    }
 }
 ?>
 <?php include 'includes/app_head.php'; ?>
