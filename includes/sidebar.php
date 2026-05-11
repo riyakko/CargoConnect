@@ -19,13 +19,7 @@ $nav_items = [
 
     <!-- Logo -->
     <div class="cc-sidebar-logo">
-        <div class="cc-logo-icon">
-            <div class="cc-logo-bar1"></div>
-            <div class="cc-logo-bar2"></div>
-        </div>
-        <span class="cc-logo-text">
-            <span class="cc-logo-cargo">Cargo</span><span class="cc-logo-connect">Connect.</span>
-        </span>
+        <?php $logo_height = 36; include __DIR__ . '/logo.php'; ?>
     </div>
 
     <!-- Navigation -->

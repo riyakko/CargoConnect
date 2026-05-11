@@ -380,12 +380,7 @@ body{
         <i class="fas fa-xmark"></i>
     </button>
     <div class="adm-logo">
-        <div class="adm-logo-bars">
-            <div style="width:8px;height:12px;"></div>
-            <div style="width:10px;height:18px;"></div>
-            <div style="width:6px;height:12px;"></div>
-        </div>
-        <div class="adm-logo-text"><span>Cargo</span><b>Connect.</b></div>
+        <?php $logo_height = 36; $logo_class = ''; include 'includes/logo.php'; ?>
     </div>
     <nav class="adm-nav">
         <a href="admin.php?tab=users" class="<?php echo $tab==='users'?'active':''; ?>"><i class="fas fa-user"></i> User Management</a>
