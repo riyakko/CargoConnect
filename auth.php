@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'includes/db.php';
+require_once 'includes/email_helper.php';
 
 $page_title = "Login | CargoConnect";
 $error = '';
@@ -53,6 +54,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         $stmt->close();
     } else {
         $error = $conn ? 'Please fill in all fields.' : 'Database connection error.';
+    }
+}
+
+// Handle FORGOT PASSWORD
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POST['form_type'] === 'forgot_password') {
+    $email = trim($_POST['forgot_email'] ?? '');
+    
+    // Rate limiting: check if user has requested reset recently
+    $rate_limit_key = 'forgot_password_' . md5($email);
+    if (isset($_SESSION[$rate_limit_key]) && (time() - $_SESSION[$rate_limit_key]) < 300) { // 5 minutes
+        $forgot_error = 'Please wait 5 minutes before requesting another password reset.';
+    } elseif (!$email) {
+        $forgot_error = 'Please enter your email address.';
+    } elseif (!validateEmail($email)) {
+        $forgot_error = 'Please enter a valid email address.';
+    } elseif ($conn) {
+        // Clean expired tokens first
+        cleanExpiredTokens($conn);
+        
+        // Check if email exists in database
+        $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ? AND status = 'active'");
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            // Generate secure token
+            $token = generateSecureToken(32);
+            $expires_at = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+            
+            // Delete any existing tokens for this email
+            $delete_stmt = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
+            $delete_stmt->bind_param('s', $email);
+            $delete_stmt->execute();
+            $delete_stmt->close();
+            
+            // Insert new token
+            $insert_stmt = $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
+            $insert_stmt->bind_param('sss', $email, $token, $expires_at);
+            
+            if ($insert_stmt->execute()) {
+                // Generate reset link
+                $reset_link = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/reset_password.php?token=" . $token;
+                
+                // Send email (demo version stores in session)
+                if (sendPasswordResetEmail($email, $reset_link)) {
+                    // Set rate limiting
+                    $_SESSION[$rate_limit_key] = time();
+                    $forgot_success = "Reset link sent to your email. (Demo: Check session for email content)";
+                } else {
+                    $forgot_error = 'Failed to send reset email. Please try again.';
+                }
+            } else {
+                $forgot_error = 'Failed to generate reset link. Please try again.';
+            }
+            $insert_stmt->close();
+        } else {
+            // Don't reveal if email exists or not for security
+            $forgot_success = "If an account with this email exists, a reset link has been sent.";
+        }
+        $stmt->close();
+    } else {
+        $forgot_error = 'Database connection error. Please try again later.';
     }
 }
 
@@ -183,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
                     <div class="mb-4 position-relative">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label mb-0">Password</label>
-                            <a href="#" class="text-decoration-none fw-medium" style="color: #2563eb; font-size: 0.9rem;">Forgot Password?</a>
+                            <a href="#" class="text-decoration-none fw-medium" style="color: #2563eb; font-size: 0.9rem;" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Forgot Password?</a>
                         </div>
                         <div class="position-relative">
                             <input type="password" name="password" id="loginPasswordField" class="form-control pe-5" placeholder="Password" required>
@@ -238,6 +302,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
                         Already have an account? <a href="#" id="link-login" class="text-decoration-none fw-medium" style="color: #3b82f6;">Log in</a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="forgotPasswordModalLabel">Forgot Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-4">Enter your email address and we'll send you a link to reset your password.</p>
+                    
+                    <form id="forgotPasswordForm" action="auth.php" method="POST">
+                        <input type="hidden" name="form_type" value="forgot_password">
+                        <div class="mb-3">
+                            <label for="forgotEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="forgotEmail" name="forgot_email" placeholder="Enter your registered email" required>
+                            <div class="invalid-feedback">Please enter a valid email address.</div>
+                        </div>
+                        
+                        <div id="forgotPasswordMessage" class="alert d-none" role="alert"></div>
+                        
+                        <button type="submit" class="btn btn-primary w-100" id="forgotPasswordSubmitBtn">
+                            <span class="btn-text">Send Reset Link</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
             </div>
         </div>
     </div>
@@ -299,6 +397,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
                 iconElement.classList.add('fa-eye-slash');
             }
         }
+
+        // Handle forgot password form submission
+        document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('forgotPasswordSubmitBtn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const spinner = submitBtn.querySelector('.spinner-border');
+            const messageDiv = document.getElementById('forgotPasswordMessage');
+            const emailInput = document.getElementById('forgotEmail');
+            
+            // Clear previous messages
+            messageDiv.classList.add('d-none');
+            emailInput.classList.remove('is-invalid');
+            
+            // Validate email
+            const email = emailInput.value.trim();
+            if (!email || !email.includes('@')) {
+                emailInput.classList.add('is-invalid');
+                return;
+            }
+            
+            // Show loading state
+            btnText.textContent = 'Sending...';
+            spinner.classList.remove('d-none');
+            submitBtn.disabled = true;
+            
+            // Submit form
+            this.submit();
+        });
+
+        // Handle forgot password modal events
+        const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+        forgotPasswordModal.addEventListener('show.bs.modal', function () {
+            // Reset form when modal opens
+            document.getElementById('forgotPasswordForm').reset();
+            document.getElementById('forgotPasswordMessage').classList.add('d-none');
+            document.getElementById('forgotEmail').classList.remove('is-invalid');
+            
+            // Reset button state
+            const submitBtn = document.getElementById('forgotPasswordSubmitBtn');
+            submitBtn.querySelector('.btn-text').textContent = 'Send Reset Link';
+            submitBtn.querySelector('.spinner-border').classList.add('d-none');
+            submitBtn.disabled = false;
+        });
+
+        <?php if (isset($forgot_success)): ?>
+            // Show success message
+            const modal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+            modal.show();
+            
+            const messageDiv = document.getElementById('forgotPasswordMessage');
+            messageDiv.className = 'alert alert-success';
+            messageDiv.textContent = '<?php echo htmlspecialchars($forgot_success); ?>';
+            messageDiv.classList.remove('d-none');
+            
+            // Hide submit button after success
+            document.getElementById('forgotPasswordSubmitBtn').style.display = 'none';
+            
+            <?php if (isset($_SESSION['reset_link'])): ?>
+            console.log('Demo: Reset link = <?php echo htmlspecialchars($_SESSION['reset_link']); ?>');
+            <?php unset($_SESSION['reset_link'], $_SESSION['reset_email']); ?>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <?php if (isset($forgot_error)): ?>
+            // Show error message
+            const modal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+            modal.show();
+            
+            const messageDiv = document.getElementById('forgotPasswordMessage');
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.textContent = '<?php echo htmlspecialchars($forgot_error); ?>';
+            messageDiv.classList.remove('d-none');
+        <?php endif; ?>
     </script>
 </body>
 

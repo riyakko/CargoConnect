@@ -198,6 +198,46 @@ main {
         font-size: 2.5rem;
     }
     .decorative-swoosh { display: none; /* hide on smaller screens for cleaner look */ }
+    
+    /* Auth page responsive adjustments */
+    #auth-page .split-container {
+        flex-direction: column;
+    }
+    
+    #auth-page .right-panel {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        margin-left: 0;
+        padding-left: 0;
+        box-shadow: none;
+        flex: 1;
+        min-height: 100vh;
+    }
+    
+    #auth-page .left-panel {
+        display: none; /* Hide left panel on mobile for cleaner look */
+    }
+    
+    #auth-page .login-card {
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    #auth-page .login-card {
+        padding: 1rem;
+    }
+    
+    #auth-page .toggle-btn {
+        padding: 0.6rem;
+        font-size: 0.8rem;
+    }
+    
+    #auth-page .form-control {
+        padding: 0.8rem;
+        font-size: 0.85rem;
+    }
 }
 
 /* ========================================================================= */
@@ -210,7 +250,7 @@ main {
 
 /* Left panel: light top transitioning to dark navy at the bottom via gradient */
 #auth-page .left-panel { 
-    flex: 1.1; 
+    flex: 1; 
     position: relative; 
     display: flex; 
     flex-direction: column; 
@@ -235,9 +275,34 @@ main {
     pointer-events: none;
 }
 
-#auth-page .right-panel { flex: 0.9; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+#auth-page .right-panel { 
+    flex: 1; 
+    background-color: #f0f2f5; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    position: relative;
+    border-left: none;
+    border-top-left-radius: 80px;
+    border-bottom-left-radius: 80px;
+    box-shadow: -15px 0 40px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(135deg, #f0f2f5 0%, #f8f9fa 100%);
+    z-index: 5;
+    margin-left: -40px;
+    padding-left: 40px;
+}
 
-#auth-page .login-card { width: 100%; max-width: 440px; padding: 2rem; }
+#auth-page .login-card { 
+    width: 100%; 
+    max-width: 440px; 
+    padding: 2rem; 
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
 
 #auth-page .toggle-switch { display: flex; background: #e2e8f0; padding: 4px; border-radius: 4px; margin-bottom: 2.5rem;}
 #auth-page .toggle-btn { flex: 1; text-align: center; padding: 0.8rem; cursor: pointer; border-radius: 4px; font-weight: 700; font-size: 0.9rem; transition: background 0.3s, box-shadow 0.3s; color: #000; }
@@ -629,4 +694,116 @@ main {
     height: 35px;
     background: #e5e7eb;
     border-radius: 50%;
+}
+
+/* ========================================================================= */
+/* RESET PASSWORD PAGE STYLES (id="reset-page") */
+/* ========================================================================= */
+#reset-page {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f0f2f5 0%, #f8f9fa 100%);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#reset-page .reset-container {
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+}
+
+#reset-page .reset-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#reset-page h2 {
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2rem;
+}
+
+#reset-page .form-label {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+#reset-page .form-control {
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    border: 1px solid #cbd5e1;
+    font-size: 0.9rem;
+    color: #64748b;
+    transition: all 0.3s ease;
+}
+
+#reset-page .form-control::placeholder {
+    color: #94a3b8;
+}
+
+#reset-page .form-control:focus {
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+    border-color: #F97316;
+}
+
+#reset-page .form-control[readonly] {
+    background-color: #f8fafc;
+    color: #64748b;
+}
+
+#reset-page .btn-submit {
+    background-color: #F97316;
+    color: white;
+    font-weight: 800;
+    border-radius: 6px;
+    padding: 1rem;
+    border: none;
+    width: 100%;
+    transition: background 0.3s;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+#reset-page .btn-submit:hover {
+    background-color: #ea580c;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(249, 115, 22, 0.2);
+}
+
+/* Responsive adjustments for reset password page */
+@media (max-width: 768px) {
+    #reset-page .reset-container {
+        padding: 15px;
+    }
+    
+    #reset-page .reset-card {
+        padding: 2rem;
+        border-radius: 12px;
+    }
+    
+    #reset-page h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #reset-page .reset-card {
+        padding: 1.5rem;
+    }
+    
+    #reset-page .form-control {
+        padding: 0.8rem;
+        font-size: 0.85rem;
+    }
 }
