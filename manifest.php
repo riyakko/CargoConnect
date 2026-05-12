@@ -1,5 +1,9 @@
 <?php
 require_once 'includes/auth_check.php';
+/** @var int $user_id */  $user_id = $user_id ?? $_SESSION['user_id'];
+/** @var string $user_role */ $user_role = $user_role ?? 'customer';
+/** @var string $user_name */ $user_name = $user_name ?? '';
+/** @var string $user_initials */ $user_initials = $user_initials ?? '';
 $page_title = 'Manifests';
 $active_page = 'manifests';
 

@@ -1,5 +1,7 @@
 <?php
 require_once 'includes/auth_check.php';
+/** @var int $user_id — provided by auth_check.php */
+$user_id = $user_id ?? $_SESSION['user_id'];
 $page_title = 'Bookings';
 $active_page = 'bookings';
 
