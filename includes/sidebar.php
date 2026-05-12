@@ -1,4 +1,19 @@
 <?php
+/**
+ * CargoConnect — Sidebar Partial
+ *
+ * Variables injected by auth_check.php (guaranteed non-empty on protected pages):
+ * @var string $user_avatar   Relative path to uploaded avatar, or '' if none.
+ * @var string $user_initials Two-letter initials (e.g. "JD").
+ * @var string $user_name     Full display name.
+ * @var string $user_role     'admin' or 'customer'.
+ */
+
+/** @var string $user_avatar */
+/** @var string $user_initials */
+/** @var string $user_name */
+/** @var string $user_role */
+
 $nav_items = [
     ['id' => 'dashboard',   'label' => 'Dashboard',   'icon' => 'fa-gauge-high',      'href' => 'dashboard.php'],
     ['id' => 'bookings',    'label' => 'Bookings',    'icon' => 'fa-calendar-check',  'href' => 'book.php'],
@@ -36,6 +51,30 @@ $nav_items = [
 
     <!-- Footer -->
     <div class="cc-sidebar-footer">
+        <!-- User identity block -->
+        <a href="profile.php" class="d-flex align-items-center gap-2 text-decoration-none mb-2"
+           style="padding:8px 12px;border-radius:10px;transition:background 0.2s;"
+           onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">
+            <?php if (!empty($user_avatar)): ?>
+                <img src="<?php echo htmlspecialchars($user_avatar); ?>"
+                     alt="avatar"
+                     style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--cc-orange);flex-shrink:0;">
+            <?php else: ?>
+                <div style="width:34px;height:34px;border-radius:50%;background:var(--cc-orange);
+                            display:flex;align-items:center;justify-content:center;
+                            font-size:0.85rem;color:#fff;font-weight:700;flex-shrink:0;">
+                    <?php echo htmlspecialchars($user_initials); ?>
+                </div>
+            <?php endif; ?>
+            <div style="overflow:hidden;">
+                <div style="font-weight:600;font-size:0.82rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    <?php echo htmlspecialchars($user_name); ?>
+                </div>
+                <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);">
+                    <?php echo htmlspecialchars(ucfirst($user_role)); ?>
+                </div>
+            </div>
+        </a>
         <?php if (isset($user_role) && $user_role === 'admin'): ?>
         <a href="admin.php" class="cc-nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'admin.php') ? 'active' : ''; ?>">
             <i class="fas fa-user-shield"></i>
@@ -52,3 +91,4 @@ $nav_items = [
         </a>
     </div>
 </aside>
+

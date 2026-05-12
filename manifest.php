@@ -218,7 +218,7 @@ select.mf-form-control { cursor: pointer; }
             </button>
             <span class="cc-topbar-title"><i class="fas fa-file-invoice text-blue me-2"></i>Manifest</span>
         </div>
-        <div class="cc-topbar-actions"><div class="cc-avatar"><?php echo $user_initials; ?></div></div>
+        <div class="cc-topbar-actions"><a href="profile.php" style="line-height:0;"><?php include __DIR__ . '/includes/avatar.php'; ?></a></div>
     </div>
 
     <div class="cc-page">

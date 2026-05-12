@@ -360,7 +360,7 @@
             controls.autoRotateSpeed = 2.0;
 
             const loader = new GLTFLoader();
-            loader.load('../CARGO CONNECT.glb', (gltf) => {
+            loader.load('../content/CARGO CONNECT.glb', (gltf) => {
                 const model = gltf.scene;
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());

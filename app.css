@@ -846,3 +846,70 @@ body {
     }
     .cc-topbar-actions .cc-btn-sm span { display: none; } /* hide button text on tiny screens */
 }
+
+/* ================================================================
+   AVATAR — topbar image link
+   ================================================================ */
+.cc-topbar-actions a[href="profile.php"] {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    border-radius: 50%;
+    transition: opacity var(--cc-transition), box-shadow var(--cc-transition);
+}
+.cc-topbar-actions a[href="profile.php"]:hover {
+    opacity: 0.88;
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.35);
+    border-radius: 50%;
+}
+/* Ensure img avatars in topbar are always circular */
+.cc-topbar-actions img {
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ================================================================
+   PROFILE PAGE — avatar upload area
+   ================================================================ */
+/* Reposition the profile avatar so it overlaps the banner */
+.cc-profile-avatar {
+    margin: -40px auto 12px;
+    cursor: default;
+    overflow: visible; /* allow img to show rounded */
+}
+/* The avatar image inside the card */
+.cc-profile-avatar img {
+    display: block;
+    border: 4px solid var(--cc-white);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transition: opacity var(--cc-transition);
+}
+.cc-profile-avatar img:hover { opacity: 0.9; }
+
+/* Upload/Remove buttons inside the profile card */
+.cc-profile-card .cc-card-body label.cc-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+/* ================================================================
+   SIDEBAR — user identity block
+   ================================================================ */
+.cc-sidebar-footer > a.d-flex {
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: background var(--cc-transition);
+}
+.cc-sidebar-footer > a.d-flex:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+/* ================================================================
+   SECURITY CARD — password eye toggle
+   ================================================================ */
+#security .cc-form-control {
+    padding-right: 44px; /* room for the eye icon */
+}

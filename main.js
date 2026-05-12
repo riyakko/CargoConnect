@@ -59,7 +59,7 @@ function init() {
     
     // We attempt to load 'cargo connect.glb'. If it fails, we render a placeholder metallic box.
     loader.load(
-        'CARGO CONNECT.glb', 
+        '/content/CARGO CONNECT.glb', 
         (gltf) => {
             const modelInstance = gltf.scene;
             
@@ -89,7 +89,7 @@ function init() {
         },
         undefined, // onProgress omitted
         (error) => {
-            console.warn('Failed to load CARGO CONNECT.glb. Using fallback placeholder geometry.', error);
+            console.warn('Failed to load /content/CARGO CONNECT.glb. Using fallback placeholder geometry.', error);
             createFallbackBox(scene);
         }
     );

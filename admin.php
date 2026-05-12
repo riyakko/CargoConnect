@@ -35,13 +35,45 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $conn) {
     }
     // Update booking status
     if ($_POST['action']==='update_booking' && isset($_POST['bid'],$_POST['bstatus'])) {
+        $bid     = (int)$_POST['bid'];
+        $bstatus = $_POST['bstatus'];
+
         $s=$conn->prepare("UPDATE bookings SET booking_status=? WHERE booking_id=?");
-        $s->bind_param('si',$_POST['bstatus'],$_POST['bid']); $s->execute(); $s->close();
+        $s->bind_param('si',$bstatus,$bid); $s->execute(); $s->close();
+
         // Also update shipment status
         $map=['Approved'=>'In Transit','Rejected'=>'Pending','In Transit'=>'In Transit'];
-        $shipStatus=$map[$_POST['bstatus']]??'Pending';
+        $shipStatus=$map[$bstatus]??'Pending';
         $s2=$conn->prepare("UPDATE shipments s JOIN bookings b ON s.shipment_id=b.shipment_id SET s.status=? WHERE b.booking_id=?");
-        if($s2){$s2->bind_param('si',$shipStatus,$_POST['bid']);$s2->execute();$s2->close();}
+        if($s2){$s2->bind_param('si',$shipStatus,$bid);$s2->execute();$s2->close();}
+
+        // ── Insert notification for the booking owner ──────────────
+        $notif_messages = [
+            'Approved'   => 'Your delivery request has been approved.',
+            'Rejected'   => 'Your booking status has been updated to Rejected.',
+            'In Transit' => 'Your order is now in transit.',
+        ];
+        $notif_msg = $notif_messages[$bstatus] ?? 'Your booking status has been updated to ' . $bstatus . '.';
+
+        // Find the user who owns this booking
+        $nu = $conn->prepare("SELECT user_id FROM bookings WHERE booking_id=?");
+        if ($nu) {
+            $nu->bind_param('i', $bid);
+            $nu->execute();
+            $booking_owner_id = null; // pre-declare; bind_result() will populate it
+            $nu->bind_result($booking_owner_id);
+            if ($nu->fetch() && $booking_owner_id) {
+                $nu->close();
+                $ns = $conn->prepare("INSERT INTO notifications (user_id, message, status) VALUES (?, ?, 'unread')");
+                if ($ns) {
+                    $ns->bind_param('is', $booking_owner_id, $notif_msg);
+                    $ns->execute();
+                    $ns->close();
+                }
+            } else {
+                $nu->close();
+            }
+        }
     }
     header('Location: admin.php?tab='.($_POST['tab']??'users')); exit;
 }
@@ -66,6 +98,32 @@ if ($conn) {
     // Chart: shipments per month (last 6 months)
     $r=$conn->query("SELECT DATE_FORMAT(date_created,'%b %Y') as mo, COUNT(*) as cnt FROM shipments WHERE date_created >= DATE_SUB(NOW(), INTERVAL 6 MONTH) GROUP BY YEAR(date_created),MONTH(date_created) ORDER BY YEAR(date_created),MONTH(date_created)");
     if($r){while($row=$r->fetch_assoc()){$chart_labels[]=$row['mo'];$chart_data[]=$row['cnt'];}}
+
+    // ── Completed Packages chart data ─────────────────────────────────────
+    // Total completed count & percentage
+    $comp_total = 0; $all_total = 0;
+    $ct = $conn->query("SELECT COUNT(*) AS cnt FROM bookings WHERE booking_status='Approved'"); // treat Approved = fulfilled
+    // Use shipments table which has Completed status
+    $ct = $conn->query("SELECT COUNT(*) AS cnt FROM shipments WHERE status='Completed'");
+    if ($ct) { $row = $ct->fetch_assoc(); $comp_total = (int)$row['cnt']; }
+    $at = $conn->query("SELECT COUNT(*) AS cnt FROM shipments");
+    if ($at) { $row = $at->fetch_assoc(); $all_total = (int)$row['cnt']; }
+    $comp_pct = $all_total > 0 ? round(($comp_total / $all_total) * 100, 1) : 0;
+
+    // Daily (last 14 days)
+    $comp_daily_labels = []; $comp_daily_data = [];
+    $rd = $conn->query("SELECT DATE_FORMAT(date_created,'%b %d') as d, COUNT(*) as cnt FROM shipments WHERE status='Completed' AND date_created >= DATE_SUB(NOW(), INTERVAL 14 DAY) GROUP BY DATE(date_created) ORDER BY DATE(date_created)");
+    if($rd){while($row=$rd->fetch_assoc()){$comp_daily_labels[]=$row['d'];$comp_daily_data[]=$row['cnt'];}}
+
+    // Weekly (last 8 weeks)
+    $comp_weekly_labels = []; $comp_weekly_data = [];
+    $rw = $conn->query("SELECT CONCAT('Wk ',WEEK(date_created)) as w, COUNT(*) as cnt FROM shipments WHERE status='Completed' AND date_created >= DATE_SUB(NOW(), INTERVAL 8 WEEK) GROUP BY YEAR(date_created),WEEK(date_created) ORDER BY YEAR(date_created),WEEK(date_created)");
+    if($rw){while($row=$rw->fetch_assoc()){$comp_weekly_labels[]=$row['w'];$comp_weekly_data[]=$row['cnt'];}}
+
+    // Monthly (last 6 months)
+    $comp_monthly_labels = []; $comp_monthly_data = [];
+    $rm = $conn->query("SELECT DATE_FORMAT(date_created,'%b %Y') as mo, COUNT(*) as cnt FROM shipments WHERE status='Completed' AND date_created >= DATE_SUB(NOW(), INTERVAL 6 MONTH) GROUP BY YEAR(date_created),MONTH(date_created) ORDER BY YEAR(date_created),MONTH(date_created)");
+    if($rm){while($row=$rm->fetch_assoc()){$comp_monthly_labels[]=$row['mo'];$comp_monthly_data[]=$row['cnt'];}}
 }
 ?>
 <!DOCTYPE html>
@@ -311,6 +369,30 @@ body{
 /* Chart container */
 .chart-wrap{padding:24px;position:relative;height:280px;}
 
+/* Completed packages card extras */
+.comp-stat-row{display:flex;gap:20px;padding:18px 24px 0;flex-wrap:wrap;}
+.comp-stat-box{
+    flex:1;min-width:120px;
+    background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+    border:1.5px solid #bbf7d0;
+    border-radius:10px;
+    padding:14px 18px;
+    text-align:center;
+}
+.comp-stat-box .stat-num{font-size:1.7rem;font-weight:800;color:#15803d;line-height:1;}
+.comp-stat-box .stat-lbl{font-size:0.72rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;}
+.comp-filter-tabs{display:flex;gap:6px;}
+.comp-filter-tab{
+    padding:5px 14px;border-radius:20px;border:1.5px solid #e5e7eb;
+    font-size:0.78rem;font-weight:700;cursor:pointer;
+    background:#fff;color:#6b7280;
+    transition:all .18s;
+    letter-spacing:0.03em;
+}
+.comp-filter-tab.active,.comp-filter-tab:hover{
+    background:#16a34a;border-color:#16a34a;color:#fff;
+}
+
 /* Responsive */
 @media (max-width: 991.98px){
     .adm-card-hdr{flex-wrap:wrap;gap:12px;}
@@ -468,12 +550,45 @@ body{
 
     <?php else: ?>
     <!-- ── BOOKINGS ── -->
-    <!-- Chart -->
+    <!-- Chart: System Volume -->
     <div class="adm-card">
         <div class="adm-card-hdr">
             <h5>System Volume <span style="font-weight:400;font-size:0.88rem;color:#9ca3af;">(Last 6 Months)</span></h5>
         </div>
         <div class="chart-wrap"><canvas id="volumeChart"></canvas></div>
+    </div>
+
+    <!-- Chart: Completed Packages -->
+    <div class="adm-card">
+        <div class="adm-card-hdr">
+            <h5>
+                <i class="fas fa-circle-check" style="color:#16a34a;margin-right:8px;"></i>
+                Completed Packages
+                <span style="font-weight:400;font-size:0.88rem;color:#9ca3af;"> — Delivery Confirmations</span>
+            </h5>
+            <!-- Filter tabs -->
+            <div class="comp-filter-tabs">
+                <button class="comp-filter-tab active" id="tabDaily"   onclick="switchCompChart('daily')">Daily</button>
+                <button class="comp-filter-tab"        id="tabWeekly"  onclick="switchCompChart('weekly')">Weekly</button>
+                <button class="comp-filter-tab"        id="tabMonthly" onclick="switchCompChart('monthly')">Monthly</button>
+            </div>
+        </div>
+        <!-- Summary stats -->
+        <div class="comp-stat-row">
+            <div class="comp-stat-box">
+                <div class="stat-num"><?php echo number_format($comp_total); ?></div>
+                <div class="stat-lbl">Total Completed</div>
+            </div>
+            <div class="comp-stat-box">
+                <div class="stat-num"><?php echo $comp_pct; ?>%</div>
+                <div class="stat-lbl">of All Shipments</div>
+            </div>
+            <div class="comp-stat-box" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#bfdbfe;">
+                <div class="stat-num" style="color:#1d4ed8;"><?php echo number_format($all_total); ?></div>
+                <div class="stat-lbl">Total Shipments</div>
+            </div>
+        </div>
+        <div class="chart-wrap"><canvas id="completedChart"></canvas></div>
     </div>
 
     <!-- Bookings Table -->
@@ -634,8 +749,10 @@ document.querySelectorAll('.modal-backdrop-custom').forEach(m => {
     });
 })();
 
-// Chart
+// ── Charts (bookings tab) ─────────────────────────────────────────────────
 <?php if($tab==='bookings'): ?>
+
+// System Volume Chart
 const ctx = document.getElementById('volumeChart').getContext('2d');
 new Chart(ctx, {
     type: 'line',
@@ -662,6 +779,73 @@ new Chart(ctx, {
         }
     }
 });
+
+// ── Completed Packages Chart ─────────────────────────────────────────────
+const compDatasets = {
+    daily: {
+        labels: <?php echo json_encode($comp_daily_labels   ?: ['No data']); ?>,
+        data:   <?php echo json_encode($comp_daily_data     ?: [0]);         ?>
+    },
+    weekly: {
+        labels: <?php echo json_encode($comp_weekly_labels  ?: ['No data']); ?>,
+        data:   <?php echo json_encode($comp_weekly_data    ?: [0]);         ?>
+    },
+    monthly: {
+        labels: <?php echo json_encode($comp_monthly_labels ?: ['No data']); ?>,
+        data:   <?php echo json_encode($comp_monthly_data   ?: [0]);         ?>
+    }
+};
+
+const ctxComp = document.getElementById('completedChart').getContext('2d');
+const compChart = new Chart(ctxComp, {
+    type: 'bar',
+    data: {
+        labels: compDatasets.daily.labels,
+        datasets: [{
+            label: 'Completed',
+            data: compDatasets.daily.data,
+            backgroundColor: 'rgba(22,163,74,0.18)',
+            borderColor: '#16a34a',
+            borderWidth: 2,
+            borderRadius: 6,
+            borderSkipped: false,
+            hoverBackgroundColor: 'rgba(22,163,74,0.35)',
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ctx => ' ' + ctx.parsed.y + ' completed'
+                }
+            }
+        },
+        scales: {
+            x: { grid: { color: '#f3f4f6' }, ticks: { font: { family:'Inter', size:11 } } },
+            y: {
+                grid: { color: '#f3f4f6' },
+                ticks: { font: { family:'Inter', size:11 }, stepSize:1, beginAtZero:true },
+                beginAtZero: true
+            }
+        },
+        animation: { duration: 400, easing: 'easeInOutQuart' }
+    }
+});
+
+function switchCompChart(period) {
+    const ds = compDatasets[period];
+    compChart.data.labels              = ds.labels;
+    compChart.data.datasets[0].data   = ds.data;
+    compChart.update();
+    // Update active tab styling
+    document.querySelectorAll('.comp-filter-tab').forEach(t => t.classList.remove('active'));
+    const tabMap = { daily:'tabDaily', weekly:'tabWeekly', monthly:'tabMonthly' };
+    const el = document.getElementById(tabMap[period]);
+    if (el) el.classList.add('active');
+}
+
 <?php endif; ?>
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

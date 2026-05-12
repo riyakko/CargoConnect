@@ -107,6 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -118,21 +119,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body id="auth-page">
     <div class="split-container flex-column flex-md-row">
         <!-- Left Panel -->
         <div class="left-panel d-none d-md-flex">
             <div class="logo-container">
-                <?php $logo_height = 48; include 'includes/logo.php'; ?>
+                <?php $logo_height = 48;
+                include 'includes/logo.php'; ?>
             </div>
-            
+
             <div class="content-container text-center">
                 <h1 class="hero-title text-start">
                     Streamline Your <span class="text-blue">Shipping</span>,<br>
                     <span class="text-orange">Track</span> <span style="font-weight: 800; color: #111827;">with Confidence</span>
                 </h1>
             </div>
-            
+
             <div id="canvas-container"></div>
 
             <div class="decorative-path">
@@ -144,11 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
                 </svg>
             </div>
 
-            <svg class="curve-svg" viewBox="0 0 1440 100" preserveAspectRatio="none">
-                <path d="M0,80 C320,0 1120,0 1440,80 L1440,100 L0,100 Z" fill="#0f172a" />
-            </svg>
             <div class="bottom-dark"></div>
-            
+
             <div class="glow-orange"></div>
             <div class="glow-orange-right"></div>
         </div>
@@ -162,15 +162,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
                 </div>
 
                 <?php if ($error): ?>
-                <div class="alert alert-danger py-2 mb-3" style="font-size:0.85rem;border-radius:6px;">
-                    <i class="fas fa-exclamation-circle me-1"></i><?php echo htmlspecialchars($error); ?>
-                </div>
+                    <div class="alert alert-danger py-2 mb-3" style="font-size:0.85rem;border-radius:6px;">
+                        <i class="fas fa-exclamation-circle me-1"></i><?php echo htmlspecialchars($error); ?>
+                    </div>
                 <?php endif; ?>
 
                 <?php if ($success): ?>
-                <div class="alert alert-success py-2 mb-3" style="font-size:0.85rem;border-radius:6px;">
-                    <i class="fas fa-check-circle me-1"></i><?php echo htmlspecialchars($success); ?>
-                </div>
+                    <div class="alert alert-success py-2 mb-3" style="font-size:0.85rem;border-radius:6px;">
+                        <i class="fas fa-check-circle me-1"></i><?php echo htmlspecialchars($success); ?>
+                    </div>
                 <?php endif; ?>
 
                 <!-- Login Form -->
@@ -181,10 +181,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
                         <input type="email" name="email" class="form-control" placeholder="Email Address" required>
                     </div>
                     <div class="mb-4 position-relative">
-                         <div class="d-flex justify-content-between align-items-center mb-1">
-                             <label class="form-label mb-0">Password</label>
-                             <a href="#" class="text-decoration-none fw-medium" style="color: #2563eb; font-size: 0.9rem;">Forgot Password?</a>
-                         </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label mb-0">Password</label>
+                            <a href="#" class="text-decoration-none fw-medium" style="color: #2563eb; font-size: 0.9rem;">Forgot Password?</a>
+                        </div>
                         <div class="position-relative">
                             <input type="password" name="password" id="loginPasswordField" class="form-control pe-5" placeholder="Password" required>
                             <span class="position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; color: #64748b;" onclick="togglePassword('loginPasswordField', this.children[0])">
@@ -192,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
                             </span>
                         </div>
                     </div>
-                    
+
                     <button type="submit" class="btn-submit mt-4 shadow-sm">LOGIN</button>
 
                     <div class="text-center mt-4" style="font-size: 0.9rem; color: #1e293b;">
@@ -277,8 +277,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
 
             btnLogin.addEventListener('click', showLogin);
             btnRegister.addEventListener('click', showRegister);
-            linkCreateAccount.addEventListener('click', (e) => { e.preventDefault(); showRegister(); });
-            linkLogin.addEventListener('click', (e) => { e.preventDefault(); showLogin(); });
+            linkCreateAccount.addEventListener('click', (e) => {
+                e.preventDefault();
+                showRegister();
+            });
+            linkLogin.addEventListener('click', (e) => {
+                e.preventDefault();
+                showLogin();
+            });
         });
 
         function togglePassword(fieldId, iconElement) {
@@ -295,4 +301,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         }
     </script>
 </body>
+
 </html>

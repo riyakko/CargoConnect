@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </button>
             <span class="cc-topbar-title"><i class="fas fa-calculator text-blue me-2"></i>Rate Calculator</span>
         </div>
-        <div class="cc-topbar-actions"><div class="cc-avatar"><?php echo $user_initials; ?></div></div>
+        <div class="cc-topbar-actions"><a href="profile.php" style="line-height:0;"><?php include __DIR__ . '/includes/avatar.php'; ?></a></div>
     </div>
 
     <div class="cc-page">

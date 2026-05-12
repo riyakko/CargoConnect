@@ -1,11 +1,14 @@
 <?php
 require_once 'includes/auth_check.php';
+/** @var array<string, mixed> $current_user Guaranteed non-null by auth_check.php guard */
 $page_title = 'Dashboard';
 $active_page = 'dashboard';
 
 // Fetch summary counts — scoped by role
 // Admins see all shipments; customers see only their own
-$total_active = 0; $total_pending = 0; $total_delivered = 0;
+$total_active = 0;
+$total_pending = 0;
+$total_delivered = 0;
 $recent = [];
 
 if ($conn) {
@@ -21,45 +24,89 @@ if ($conn) {
         if ($r) $total_delivered = $r->fetch_assoc()['c'];
 
         $r = $conn->query("SELECT * FROM shipments ORDER BY date_created DESC LIMIT 5");
-        if ($r) { while ($row = $r->fetch_assoc()) $recent[] = $row; }
-
+        if ($r) {
+            while ($row = $r->fetch_assoc()) $recent[] = $row;
+        }
     } else {
         // Customer: only their own shipments
         $stmt = $conn->prepare("SELECT COUNT(*) as c FROM shipments WHERE user_id = ? AND status='In Transit'");
-        $stmt->bind_param('i', $user_id); $stmt->execute();
-        $total_active = $stmt->get_result()->fetch_assoc()['c'];
+        $stmt->bind_param('i', $user_id);
+        $stmt->execute();
+        $_res = $stmt->get_result();
+        $total_active = $_res ? (int)(($_res->fetch_assoc() ?? [])['c'] ?? 0) : 0;
         $stmt->close();
 
         $stmt = $conn->prepare("SELECT COUNT(*) as c FROM shipments WHERE user_id = ? AND status='Pending'");
-        $stmt->bind_param('i', $user_id); $stmt->execute();
-        $total_pending = $stmt->get_result()->fetch_assoc()['c'];
+        $stmt->bind_param('i', $user_id);
+        $stmt->execute();
+        $_res = $stmt->get_result();
+        $total_pending = $_res ? (int)(($_res->fetch_assoc() ?? [])['c'] ?? 0) : 0;
         $stmt->close();
 
         $stmt = $conn->prepare("SELECT COUNT(*) as c FROM shipments WHERE user_id = ? AND status IN ('Arrived','Completed')");
-        $stmt->bind_param('i', $user_id); $stmt->execute();
-        $total_delivered = $stmt->get_result()->fetch_assoc()['c'];
+        $stmt->bind_param('i', $user_id);
+        $stmt->execute();
+        $_res = $stmt->get_result();
+        $total_delivered = $_res ? (int)(($_res->fetch_assoc() ?? [])['c'] ?? 0) : 0;
         $stmt->close();
 
         $stmt = $conn->prepare("SELECT * FROM shipments WHERE user_id = ? ORDER BY date_created DESC LIMIT 5");
-        $stmt->bind_param('i', $user_id); $stmt->execute();
+        $stmt->bind_param('i', $user_id);
+        $stmt->execute();
         $r = $stmt->get_result();
         while ($row = $r->fetch_assoc()) $recent[] = $row;
         $stmt->close();
     }
 }
 
+// ── Handle: mark notifications as read ───────────────────────
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' && ($conn) &&
+    isset($_POST['_action']) && $_POST['_action'] === 'mark_read'
+) {
+    if ($user_role !== 'admin') {
+        // Mark all unread notifications as read for this user
+        $mr = $conn->prepare("UPDATE notifications SET status='read' WHERE user_id=? AND status='unread'");
+        if ($mr) {
+            $mr->bind_param('i', $user_id);
+            $mr->execute();
+            $mr->close();
+        }
+    }
+    // Return empty 200 for AJAX calls
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+        exit;
+    }
+}
+
 // Fetch notifications — customers only see their own
-$notifications = [];
+$notifications  = [];
+$unread_count   = 0;
 if ($conn) {
     if ($user_role === 'admin') {
-        $r = $conn->query("SELECT * FROM notifications ORDER BY date_sent DESC LIMIT 5");
-        if ($r) { while ($row = $r->fetch_assoc()) $notifications[] = $row; }
+        $r = $conn->query("SELECT * FROM notifications ORDER BY date_sent DESC LIMIT 10");
+        if ($r) {
+            while ($row = $r->fetch_assoc()) $notifications[] = $row;
+        }
     } else {
-        $stmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY date_sent DESC LIMIT 5");
-        $stmt->bind_param('i', $user_id); $stmt->execute();
+        $stmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY date_sent DESC LIMIT 10");
+        $stmt->bind_param('i', $user_id);
+        $stmt->execute();
         $r = $stmt->get_result();
-        while ($row = $r->fetch_assoc()) $notifications[] = $row;
+        if ($r) {
+            while ($row = $r->fetch_assoc()) $notifications[] = $row;
+        }
         $stmt->close();
+
+        // Count unread
+        $uc = $conn->prepare("SELECT COUNT(*) FROM notifications WHERE user_id=? AND status='unread'");
+        if ($uc) {
+            $uc->bind_param('i', $user_id);
+            $uc->execute();
+            $uc->bind_result($unread_count);
+            $uc->fetch();
+            $uc->close();
+        }
     }
 }
 ?>
@@ -76,13 +123,12 @@ if ($conn) {
         </div>
         <div class="cc-topbar-actions cc-dashboard-topbar-actions">
             <a href="book.php" class="cc-btn cc-btn-primary cc-btn-sm cc-dashboard-topbar-btn"><i class="fas fa-plus"></i> <span class="cc-btn-text">New Shipment</span></a>
-            <div class="cc-avatar"><?php echo $user_initials; ?></div>
+            <a href="profile.php" style="line-height:0;"><?php include __DIR__ . '/includes/avatar.php'; ?></a>
         </div>
     </div>
 
     <div class="cc-page">
         <h2 class="cc-page-title">Hello, <?php echo htmlspecialchars($current_user['first_name']); ?> <span class="wave">👋</span></h2>
-        <p class="cc-page-subtitle">Here's your logistics overview for today.</p>
 
         <div class="d-flex gap-4 cc-dashboard-layout">
             <div class="flex-grow-1 cc-dashboard-main-column">
@@ -112,53 +158,55 @@ if ($conn) {
                     </div>
                     <div class="cc-card-body p-0">
                         <div class="cc-table-wrapper">
-                        <table class="cc-table">
-                            <thead>
-                                <tr>
-                                    <th>Tracking ID</th>
-                                    <th>Origin</th>
-                                    <th>Destination</th>
-                                    <th>Cargo Type</th>
-                                    <th>Method</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (!empty($recent)): ?>
-                                    <?php foreach ($recent as $s): ?>
+                            <table class="cc-table">
+                                <thead>
                                     <tr>
-                                        <td><a href="track.php?id=<?php echo urlencode($s['tracking_id']); ?>" class="fw-semibold text-decoration-none"><?php echo htmlspecialchars($s['tracking_id']); ?></a></td>
-                                        <td><?php echo htmlspecialchars($s['origin']); ?></td>
-                                        <td><?php echo htmlspecialchars($s['destination']); ?></td>
-                                        <td><?php echo htmlspecialchars($s['cargo_type']); ?></td>
-                                        <td>
-                                            <?php if ($s['shipping_method'] === 'container'): ?>
-                                                <i class="fa-solid fa-ship text-muted me-1"></i>Container
-                                            <?php else: ?>
-                                                <i class="fa-solid fa-truck text-muted me-1"></i>Truck
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $badge = 'cc-badge-gray';
-                                            if ($s['status'] === 'In Transit') $badge = 'cc-badge-blue';
-                                            elseif (in_array($s['status'], ['Arrived','Completed'])) $badge = 'cc-badge-green';
-                                            elseif ($s['status'] === 'Pending') $badge = 'cc-badge-orange';
-                                            ?>
-                                            <span class="cc-badge <?php echo $badge; ?>"><?php echo htmlspecialchars($s['status']); ?></span>
-                                        </td>
-                                        <td class="text-end"><a href="track.php?id=<?php echo urlencode($s['tracking_id']); ?>" class="cc-btn cc-btn-light cc-btn-sm">View</a></td>
+                                        <th>Tracking ID</th>
+                                        <th>Origin</th>
+                                        <th>Destination</th>
+                                        <th>Cargo Type</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Action</th>
                                     </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr><td colspan="7" class="text-center" style="padding:40px;color:var(--cc-text-muted);">
-                                        <i class="fas fa-inbox me-2" style="font-size:1.5rem;"></i><br>
-                                        No shipments yet. <a href="book.php" class="text-decoration-none fw-semibold">Create your first booking</a>.
-                                    </td></tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($recent)): ?>
+                                        <?php foreach ($recent as $s): ?>
+                                            <tr>
+                                                <td><a href="track.php?id=<?php echo urlencode($s['tracking_id']); ?>" class="fw-semibold text-decoration-none"><?php echo htmlspecialchars($s['tracking_id']); ?></a></td>
+                                                <td><?php echo htmlspecialchars($s['origin']); ?></td>
+                                                <td><?php echo htmlspecialchars($s['destination']); ?></td>
+                                                <td><?php echo htmlspecialchars($s['cargo_type']); ?></td>
+                                                <td>
+                                                    <?php if ($s['shipping_method'] === 'container'): ?>
+                                                        <i class="fa-solid fa-ship text-muted me-1"></i>Container
+                                                    <?php else: ?>
+                                                        <i class="fa-solid fa-truck text-muted me-1"></i>Truck
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <?php
+                                                    $badge = 'cc-badge-gray';
+                                                    if ($s['status'] === 'In Transit') $badge = 'cc-badge-blue';
+                                                    elseif (in_array($s['status'], ['Arrived', 'Completed'])) $badge = 'cc-badge-green';
+                                                    elseif ($s['status'] === 'Pending') $badge = 'cc-badge-orange';
+                                                    ?>
+                                                    <span class="cc-badge <?php echo $badge; ?>"><?php echo htmlspecialchars($s['status']); ?></span>
+                                                </td>
+                                                <td class="text-end"><a href="track.php?id=<?php echo urlencode($s['tracking_id']); ?>" class="cc-btn cc-btn-light cc-btn-sm">View</a></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="7" class="text-center" style="padding:40px;color:var(--cc-text-muted);">
+                                                <i class="fas fa-inbox me-2" style="font-size:1.5rem;"></i><br>
+                                                No shipments yet. <a href="book.php" class="text-decoration-none fw-semibold">Create your first booking</a>.
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
                         </div><!-- /.cc-table-wrapper -->
                     </div>
                 </div>
@@ -167,20 +215,69 @@ if ($conn) {
             <!-- Notifications Panel -->
             <div class="cc-notif-panel d-none d-xl-block">
                 <div class="cc-card">
-                    <div class="cc-card-header"><h5><i class="fas fa-bell text-orange me-2"></i>Notifications</h5></div>
-                    <div class="cc-card-body">
+                    <div class="cc-card-header" style="gap:8px;">
+                        <h5>
+                            <i class="fas fa-bell text-orange me-2"></i>Notifications
+                            <?php if ($unread_count > 0): ?>
+                                <span id="notifBadge" style="
+                                display:inline-flex;align-items:center;justify-content:center;
+                                background:var(--cc-orange);color:#fff;
+                                font-size:0.65rem;font-weight:700;
+                                width:18px;height:18px;border-radius:50%;margin-left:4px;vertical-align:middle;">
+                                    <?php echo $unread_count; ?>
+                                </span>
+                            <?php endif; ?>
+                        </h5>
+                        <?php if ($user_role !== 'admin' && $unread_count > 0): ?>
+                            <button id="markReadBtn"
+                                onclick="markAllRead()"
+                                style="font-size:0.72rem;font-weight:600;color:var(--cc-blue);
+                                       background:none;border:none;cursor:pointer;padding:0;
+                                       white-space:nowrap;">
+                                Mark all read
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                    <div class="cc-card-body" style="padding:0;max-height:480px;overflow-y:auto;">
                         <?php if (!empty($notifications)): ?>
-                            <?php foreach ($notifications as $n): ?>
-                            <div class="cc-notif-item">
-                                <div class="cc-notif-icon"><i class="fas fa-<?php echo $n['status'] === 'unread' ? 'bell' : 'check-circle'; ?>"></i></div>
-                                <div class="cc-notif-text">
-                                    <h6><?php echo htmlspecialchars(mb_strimwidth($n['message'], 0, 40, '...')); ?></h6>
-                                    <p><?php echo date('M d, h:i A', strtotime($n['date_sent'])); ?></p>
+                            <?php foreach ($notifications as $n):
+                                $is_unread = $n['status'] === 'unread';
+                                // Pick icon + colour based on message keyword
+                                $msg_lc = strtolower($n['message']);
+                                if (str_contains($msg_lc, 'approved')) {
+                                    $ico = 'fa-circle-check';
+                                    $ico_clr = '#16a34a';
+                                } elseif (str_contains($msg_lc, 'rejected')) {
+                                    $ico = 'fa-circle-xmark';
+                                    $ico_clr = '#dc2626';
+                                } elseif (str_contains($msg_lc, 'transit')) {
+                                    $ico = 'fa-truck-fast';
+                                    $ico_clr = '#2563eb';
+                                } else {
+                                    $ico = 'fa-bell';
+                                    $ico_clr = '#f59e0b';
+                                }
+                            ?>
+                                <div class="cc-notif-item<?php echo $is_unread ? ' cc-notif-unread' : ''; ?>">
+                                    <div class="cc-notif-icon" style="background:<?php echo $ico_clr; ?>1a;color:<?php echo $ico_clr; ?>;">
+                                        <i class="fas <?php echo $ico; ?>"></i>
+                                    </div>
+                                    <div class="cc-notif-text">
+                                        <h6 style="<?php echo $is_unread ? 'font-weight:700;' : 'font-weight:500;color:var(--cc-text-muted);'; ?>">
+                                            <?php echo htmlspecialchars($n['message']); ?>
+                                        </h6>
+                                        <p><?php echo date('M d, Y · h:i A', strtotime($n['date_sent'])); ?></p>
+                                    </div>
+                                    <?php if ($is_unread): ?>
+                                        <span style="width:8px;height:8px;border-radius:50%;background:var(--cc-orange);flex-shrink:0;margin-top:4px;"></span>
+                                    <?php endif; ?>
                                 </div>
-                            </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <p style="color:var(--cc-text-muted);text-align:center;padding:20px 0;font-size:0.85rem;">No notifications yet.</p>
+                            <p style="color:var(--cc-text-muted);text-align:center;padding:32px 16px;font-size:0.85rem;">
+                                <i class="fas fa-bell-slash" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:0.4;"></i>
+                                No notifications yet.
+                            </p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -190,136 +287,258 @@ if ($conn) {
 </div>
 
 <style>
-/* ── Dashboard mobile fixes ─────────────────────────────── */
-.cc-dashboard-layout,
-.cc-dashboard-main-column,
-.cc-stats-grid,
-.cc-stat-card,
-.cc-table-wrapper,
-.cc-table,
-.cc-dashboard-topbar-actions,
-.cc-dashboard-topbar-btn {
-    width: 100%;
-    max-width: 100%;
-}
-
-.cc-dashboard-layout > * {
-    min-width: 0;
-}
-
-/* Stat cards: 3 columns on ≥992px, 2 on tablet, 1 on phone */
-.cc-stats-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.cc-stat-card {
-    min-height: 140px;
-    min-width: 0;
-}
-
-/* Table wrapper scroll */
-.cc-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 0 0 12px 12px;
-}
-.cc-table {
-    min-width: 720px;
-}
-.cc-dashboard-topbar-actions {
-    justify-content: flex-end;
-    flex-wrap: wrap;
-}
-.cc-dashboard-topbar-btn {
-    width: auto;
-    flex: 0 1 auto;
-}
-
-@media (max-width: 992px) {
-    .cc-dashboard-layout {
-        flex-direction: column;
-        gap: 1rem !important;
-    }
-    .cc-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 768px) {
-    /* Greeting */
-    .cc-page-title { font-size: 1.25rem; }
-    .cc-page-subtitle { font-size: 0.82rem; margin-bottom: 16px; }
-
-    /* Stat cards: 2 columns on phone */
-    .cc-stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 16px !important;
-    }
-    .cc-stat-card { min-height: 110px; padding: 16px; }
-    .cc-stat-value { font-size: 1.75rem; }
-    .cc-stat-chart { height: 44px; }
-
-    /* Card header */
-    .cc-card-header { padding: 14px 16px; }
-    .cc-card-header h5 { font-size: 0.88rem; }
-
-    /* Table cells compact */
-    .cc-table thead th { padding: 10px 12px; font-size: 0.65rem; }
-    .cc-table tbody td { padding: 10px 12px; font-size: 0.82rem; }
-
-    .cc-topbar {
-        gap: 12px;
-    }
-    .cc-dashboard-topbar-actions {
-        width: auto;
-        gap: 8px;
-        flex: 0 1 auto;
-    }
+    /* ── Dashboard mobile fixes ─────────────────────────────── */
+    .cc-dashboard-layout,
+    .cc-dashboard-main-column,
+    .cc-stats-grid,
+    .cc-stat-card,
+    .cc-table-wrapper,
+    .cc-table,
+    .cc-dashboard-topbar-actions,
     .cc-dashboard-topbar-btn {
-        padding-inline: 12px;
-    }
-
-    /* Hide button label on medium screens to save topbar space */
-    .cc-btn-text { display: none; }
-}
-
-@media (max-width: 480px) {
-    /* Stat cards: 1 column on very small phones */
-    .cc-stats-grid { grid-template-columns: 1fr; }
-    .cc-stat-card { min-height: 100px; }
-    .cc-topbar {
-        align-items: flex-start;
-    }
-    .cc-dashboard-topbar-actions {
         width: 100%;
-        justify-content: space-between;
+        max-width: 100%;
     }
-    .cc-dashboard-topbar-btn {
-        flex: 1 1 auto;
-        justify-content: center;
+
+    .cc-dashboard-layout>* {
         min-width: 0;
     }
-    .cc-table {
-        min-width: 640px;
+
+    /* Stat cards: 3 columns on ≥992px, 2 on tablet, 1 on phone */
+    .cc-stats-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-}
+
+    .cc-stat-card {
+        min-height: 140px;
+        min-width: 0;
+    }
+
+    /* Table wrapper scroll */
+    .cc-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .cc-table {
+        min-width: 720px;
+    }
+
+    .cc-dashboard-topbar-actions {
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .cc-dashboard-topbar-btn {
+        width: auto;
+        flex: 0 1 auto;
+    }
+
+    @media (max-width: 992px) {
+        .cc-dashboard-layout {
+            flex-direction: column;
+            gap: 1rem !important;
+        }
+
+        .cc-stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+
+        /* Greeting */
+        .cc-page-title {
+            font-size: 1.25rem;
+        }
+
+        .cc-page-subtitle {
+            font-size: 0.82rem;
+            margin-bottom: 16px;
+        }
+
+        /* Stat cards: 2 columns on phone */
+        .cc-stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px !important;
+        }
+
+        .cc-stat-card {
+            min-height: 110px;
+            padding: 16px;
+        }
+
+        .cc-stat-value {
+            font-size: 1.75rem;
+        }
+
+        .cc-stat-chart {
+            height: 44px;
+        }
+
+        /* Card header */
+        .cc-card-header {
+            padding: 14px 16px;
+        }
+
+        .cc-card-header h5 {
+            font-size: 0.88rem;
+        }
+
+        /* Table cells compact */
+        .cc-table thead th {
+            padding: 10px 12px;
+            font-size: 0.65rem;
+        }
+
+        .cc-table tbody td {
+            padding: 10px 12px;
+            font-size: 0.82rem;
+        }
+
+        .cc-topbar {
+            gap: 12px;
+        }
+
+        .cc-dashboard-topbar-actions {
+            width: auto;
+            gap: 8px;
+            flex: 0 1 auto;
+        }
+
+        .cc-dashboard-topbar-btn {
+            padding-inline: 12px;
+        }
+
+        /* Hide button label on medium screens to save topbar space */
+        .cc-btn-text {
+            display: none;
+        }
+    }
+
+    @media (max-width: 480px) {
+
+        /* Stat cards: 1 column on very small phones */
+        .cc-stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .cc-stat-card {
+            min-height: 100px;
+        }
+
+        .cc-topbar {
+            align-items: flex-start;
+        }
+
+        .cc-dashboard-topbar-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .cc-dashboard-topbar-btn {
+            flex: 1 1 auto;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        .cc-table {
+            min-width: 640px;
+        }
+    }
+
+    /* Notification: unread highlight */
+    .cc-notif-unread {
+        background: #fffbf5;
+        border-left: 3px solid var(--cc-orange);
+    }
+
+    .cc-notif-item {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f3f4f6;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .cc-notif-item:last-child {
+        border-bottom: none;
+    }
 </style>
 
 <script>
-const sparkOpts = {
-    maintainAspectRatio: false,
-    scales: { x: { display: false }, y: { display: false } },
-    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-    elements: { point: { radius: 0 } }
-};
-function spark(id, color) {
-    new Chart(document.getElementById(id), {
-        type: 'line',
-        data: { labels: Array(12).fill(''), datasets: [{ data: [12,19,13,15,22,10,15,25,20,28,22,30], borderColor: color, borderWidth: 2, tension: 0.4, fill: false }] },
-        options: sparkOpts
-    });
-}
-spark('chartActive', '#2563eb');
-spark('chartPending', '#f59e0b');
-spark('chartDelivered', '#16a34a');
+    function markAllRead() {
+        fetch('dashboard.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: '_action=mark_read'
+        }).then(() => {
+            // Remove orange dots + unread highlight
+            document.querySelectorAll('.cc-notif-unread').forEach(el => {
+                el.classList.remove('cc-notif-unread');
+            });
+            document.querySelectorAll('.cc-notif-item > span[style*="border-radius:50%"]').forEach(dot => dot.remove());
+            document.querySelectorAll('.cc-notif-text h6').forEach(h => {
+                h.style.fontWeight = '500';
+                h.style.color = 'var(--cc-text-muted)';
+            });
+            const badge = document.getElementById('notifBadge');
+            if (badge) badge.remove();
+            const btn = document.getElementById('markReadBtn');
+            if (btn) btn.remove();
+        });
+    }
+</script>
+
+<script>
+    const sparkOpts = {
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                display: false
+            },
+            y: {
+                display: false
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                enabled: false
+            }
+        },
+        elements: {
+            point: {
+                radius: 0
+            }
+        }
+    };
+
+    function spark(id, color) {
+        new Chart(document.getElementById(id), {
+            type: 'line',
+            data: {
+                labels: Array(12).fill(''),
+                datasets: [{
+                    data: [12, 19, 13, 15, 22, 10, 15, 25, 20, 28, 22, 30],
+                    borderColor: color,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: sparkOpts
+        });
+    }
+    spark('chartActive', '#2563eb');
+    spark('chartPending', '#f59e0b');
+    spark('chartDelivered', '#16a34a');
 </script>
 
 <?php include 'includes/app_foot.php'; ?>

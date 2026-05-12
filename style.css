@@ -208,16 +208,6 @@ main {
 }
 #auth-page .split-container { display: flex; height: 100vh; width: 100vw; }
 
-/* Left panel: light top transitioning to dark navy at the bottom via gradient */
-#auth-page .left-panel { 
-    flex: 1.1; 
-    position: relative; 
-    display: flex; 
-    flex-direction: column; 
-    overflow: hidden;
-    background: linear-gradient(to bottom, #f0f4f8 0%, #f0f4f8 50%, #0f172a 50%, #0f172a 100%);
-}
-
 /* Smooth wave transition between light and dark */
 #auth-page .left-panel::after {
     content: '';
@@ -261,12 +251,6 @@ main {
     left: 0; 
     z-index: 10; 
 }
-
-/* Hide the old discrete bottom-dark div — the gradient now handles this */
-#auth-page .bottom-dark { display: none; }
-
-/* Hide the old discrete curve SVG — gradient + ::after pseudo-element handles this */
-#auth-page .curve-svg { display: none; }
 
 #auth-page .logo-container { padding: 3rem 4rem; position: relative; z-index: 20; display: flex; align-items: center; }
 #auth-page .content-container { padding: 0 4rem; position: relative; z-index: 20; }

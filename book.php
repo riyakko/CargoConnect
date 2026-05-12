@@ -50,6 +50,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $tstmt->execute();
             $tstmt->close();
 
+            // Notify the user their booking was received
+            $notif_text = "Your booking ($tracking_id) has been received and is pending review.";
+            $ns = $conn->prepare("INSERT INTO notifications (user_id, message, status) VALUES (?, ?, 'unread')");
+            if ($ns) {
+                $ns->bind_param('is', $user_id, $notif_text);
+                $ns->execute();
+                $ns->close();
+            }
+
             $success_msg = "Booking created! Tracking ID: <strong>$tracking_id</strong>";
         } else {
             $error_msg = "Error creating booking: " . $stmt->error;
@@ -110,7 +119,7 @@ if ($conn) {
             </button>
             <span class="cc-topbar-title"><i class="fas fa-calendar-check text-blue me-2"></i>Bookings</span>
         </div>
-        <div class="cc-topbar-actions"><div class="cc-avatar"><?php echo $user_initials; ?></div></div>
+        <div class="cc-topbar-actions"><a href="profile.php" style="line-height:0;"><?php include __DIR__ . '/includes/avatar.php'; ?></a></div>
     </div>
 
     <div class="cc-page">

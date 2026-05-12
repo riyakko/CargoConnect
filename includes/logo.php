@@ -3,8 +3,8 @@
  * CargoConnect — Logo Partial
  *
  * Place your logo images in the project root:
- *   logo.png         — main logo (dark text, for light backgrounds: navbar/header/login)
- *   logo_sidebar.png — sidebar logo (light/white text, for dark backgrounds: sidebar/admin)
+ *   content/logo.png         — main logo (dark text, for light backgrounds: navbar/header/login)
+ *   content/logo_sidebar.png — sidebar logo (light/white text, for dark backgrounds: sidebar/admin)
  *
  * Supported extensions: .png, .jpg, .jpeg, .svg, .webp
  *
@@ -31,8 +31,8 @@ $prefix       = ($logo_variant === 'sidebar') ? 'logo_sidebar' : 'logo';
 
 $logo_file = null;
 foreach ($logo_exts as $ext) {
-    if (file_exists($project_root . '/' . $prefix . '.' . $ext)) {
-        $logo_file = $prefix . '.' . $ext;
+    if (file_exists($project_root . '/content/' . $prefix . '.' . $ext)) {
+        $logo_file = 'content/' . $prefix . '.' . $ext;
         break;
     }
 }
@@ -40,8 +40,8 @@ foreach ($logo_exts as $ext) {
 // Fallback: if sidebar logo not found, try main logo
 if (!$logo_file && $logo_variant === 'sidebar') {
     foreach ($logo_exts as $ext) {
-        if (file_exists($project_root . '/logo.' . $ext)) {
-            $logo_file = 'logo.' . $ext;
+        if (file_exists($project_root . '/content/logo.' . $ext)) {
+            $logo_file = 'content/logo.' . $ext;
             break;
         }
     }
