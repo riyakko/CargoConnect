@@ -59,7 +59,7 @@ function init() {
     
     // We attempt to load 'cargo connect.glb'. If it fails, we render a placeholder metallic box.
     loader.load(
-        '/content/CARGO CONNECT.glb', 
+        'content/CARGO CONNECT.glb', 
         (gltf) => {
             const modelInstance = gltf.scene;
             
